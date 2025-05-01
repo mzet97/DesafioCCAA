@@ -1,0 +1,41 @@
+name: Docker Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/DesafioCCAA/DesafioCCAA.sln
+
+      - name: Build solution
+        run: dotnet build src/DesafioCCAA/DesafioCCAA.sln --configuration Release --no-restore
+
+      - name: Publish project
+        run: dotnet publish src/DesafioCCAA/DesafioCCAA.sln --configuration Release --output publish/ --no-build
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -f src/DesafioCCAA/DesafioCCAA.Api/Dockerfile -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }} src/DesafioCCAA
+          docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest
+          docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }}

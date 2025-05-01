@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DesafioCCAA.Domain\DesafioCCAA.Domain.csproj" />
+    <ProjectReference Include="..\DesafioCCAA.Infrastructure\DesafioCCAA.Infrastructure.csproj" />
+    <ProjectReference Include="..\DesafioCCAA.Shared\DesafioCCAA.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UseCases\Books\Commands\Handlers\" />
+    <Folder Include="UseCases\Books\Notifications\" />
+    <Folder Include="UseCases\Books\ViewModels\" />
+    <Folder Include="UseCases\Books\Queries\Handlers\" />
+    <Folder Include="UseCases\Genders\Commands\Handlers\" />
+    <Folder Include="UseCases\Genders\Notifications\" />
+    <Folder Include="UseCases\Genders\ViewModels\" />
+    <Folder Include="UseCases\Genders\Queries\Handlers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="LinqKit.Core" Version="1.2.8" />
+    <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="9.0.8" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="9.0.4" />
+  </ItemGroup>
+
+</Project>

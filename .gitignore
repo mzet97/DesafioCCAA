@@ -1,0 +1,45 @@
+# Build results
+**/bin/
+**/obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Visual Studio
+.vs/
+
+# Publish
+publish/
+
+# Logs
+*.log
+
+# Docker
+**/Dockerfile*
+**/docker-compose*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Others
+*.swp
+*.tmp
+
+# Rider
+.idea/
+*.sln.iml
+
+# Test results
+TestResults/
+
+# NUGET
+*.nupkg
+*.snupkg
+.nuget/
