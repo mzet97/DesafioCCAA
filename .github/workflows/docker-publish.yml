@@ -2,42 +2,39 @@ name: Docker Publish
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
+        with: dotnet-version: '9.0.x'
 
-      - name: Restore, Build e Publish
+      - name: Restore & Build & Publish .NET
         run: |
           dotnet restore src/DesafioCCAA/DesafioCCAA.sln
-          dotnet build   src/DesafioCCAA/DesafioCCAA.sln --configuration Release --no-restore
-          dotnet publish src/DesafioCCAA/DesafioCCAA.sln --configuration Release --output publish/ --no-build
+          dotnet build   src/DesafioCCAA/DesafioCCAA.sln -c Release --no-restore
+          dotnet publish src/DesafioCCAA/DesafioCCAA.sln -c Release -o publish/ --no-build
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push Docker image
-        working-directory: src/DesafioCCAA
-        run: |
-          docker build \
-            -f DesafioCCAA.Api/Dockerfile \
-            -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest \
-            -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }} \
-            .
-          docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest
-          docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }}
+      - name: Build & Push via build-push-action
+        uses: docker/build-push-action@v4
+        with:
+          context: src/DesafioCCAA
+          file: src/DesafioCCAA/DesafioCCAA.Api/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest
+            ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }}
