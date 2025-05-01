@@ -2,8 +2,7 @@ name: Docker Publish
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build-and-publish:
@@ -21,8 +20,8 @@ jobs:
       - name: Restore, Build e Publish .NET
         run: |
           dotnet restore src/DesafioCCAA/DesafioCCAA.sln
-          dotnet build   src/DesafioCCAA/DesafioCCAA.sln --configuration Release --no-restore
-          dotnet publish src/DesafioCCAA/DesafioCCAA.sln --configuration Release --output publish/ --no-build
+          dotnet build   src/DesafioCCAA/DesafioCCAA.sln -c Release --no-restore
+          dotnet publish src/DesafioCCAA/DesafioCCAA.sln -c Release -o publish/ --no-build
 
       - name: Login no GitHub Container Registry
         uses: docker/login-action@v3
@@ -31,11 +30,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push Docker image
+      - name: Build & Push via build-push-action
         uses: docker/build-push-action@v4
         with:
           context: src/DesafioCCAA
-          file: src/DesafioCCAA/DesafioCCAA.Api/Dockerfile
+          file: DesafioCCAA.Api/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest
