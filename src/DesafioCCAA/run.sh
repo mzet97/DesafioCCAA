@@ -29,6 +29,10 @@ for DIR in "${DIRECTORIES[@]}"; do
 done
 sudo chown -R 10001:0 "$BASE_DIR/sqlserver/data"
 sudo chown -R 10001:0 "$BASE_DIR/sqlserver/logs"
+sudo chown -R 10001:0 /dados/sqlserver/data
+sudo chown -R 10001:0 /dados/sqlserver/log
+sudo chmod -R 777 /dados/sqlserver/data
+sudo chmod -R 777 /dados/sqlserver/log
 
 echo "Permissões configuradas em todos os diretórios."
 

@@ -30,6 +30,21 @@ public class BookMapping : IEntityTypeConfiguration<Book>
             .IsRequired()
             .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
+        builder.OwnsOne(o => o.CoverImage, coverImage =>
+        {
+            coverImage.Property(ci => ci.FileName)
+                .HasColumnName("CoverImageFileName")
+                .HasMaxLength(255)
+                .IsRequired()
+                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+
+            coverImage.Property(ci => ci.Path)
+                .HasColumnName("CoverImagePath")
+                .HasMaxLength(1000)
+                .IsRequired()
+                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+        });
+
         builder.Property(o => o.CreatedAt)
             .IsRequired();
 
