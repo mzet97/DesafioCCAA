@@ -23,11 +23,14 @@ for DIR in "${DIRECTORIES[@]}"; do
   fi
 done
 
-echo "Configurando permissões para os diretórios..."
-sudo chmod -R 777 "$BASE_DIR"
-sudo chown -R 10001:0 "$BASE_DIR"
+echo "Configurando permissões para todos os diretórios..."
+for DIR in "${DIRECTORIES[@]}"; do
+  sudo chmod -R 777 "$DIR"
+done
+sudo chown -R 10001:0 "$BASE_DIR/sqlserver/data"
+sudo chown -R 10001:0 "$BASE_DIR/sqlserver/logs"
 
-echo "Permissões configuradas em $BASE_DIR."
+echo "Permissões configuradas em todos os diretórios."
 
 echo "Verificando se a network '$NETWORK_NAME' já existe..."
 if [ ! "$(docker network ls --filter name=^${NETWORK_NAME}$ --format '{{.Name}}')" ]; then
