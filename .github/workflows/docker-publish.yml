@@ -2,7 +2,8 @@ name: Docker Publish
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-and-publish:
@@ -14,22 +15,23 @@ jobs:
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
-        with: dotnet-version: '9.0.x'
+        with:
+          dotnet-version: '9.0.x'
 
-      - name: Restore & Build & Publish .NET
+      - name: Restore, Build e Publish .NET
         run: |
           dotnet restore src/DesafioCCAA/DesafioCCAA.sln
-          dotnet build   src/DesafioCCAA/DesafioCCAA.sln -c Release --no-restore
-          dotnet publish src/DesafioCCAA/DesafioCCAA.sln -c Release -o publish/ --no-build
+          dotnet build   src/DesafioCCAA/DesafioCCAA.sln --configuration Release --no-restore
+          dotnet publish src/DesafioCCAA/DesafioCCAA.sln --configuration Release --output publish/ --no-build
 
-      - name: Log in to GHCR
+      - name: Login no GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push via build-push-action
+      - name: Build & Push Docker image
         uses: docker/build-push-action@v4
         with:
           context: src/DesafioCCAA
