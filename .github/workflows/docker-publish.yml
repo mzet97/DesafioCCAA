@@ -32,11 +32,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Push Docker image
-        working-directory: src/DesafioCCAA/DesafioCCAA.Api
+        working-directory: src/DesafioCCAA
         run: |
-          docker build \
-            -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest \
-            -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }} \
-            .
+          docker build -f DesafioCCAA.Api/Dockerfile -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }} .
           docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest
           docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }}
