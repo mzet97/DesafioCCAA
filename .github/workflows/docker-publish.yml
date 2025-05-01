@@ -33,8 +33,8 @@ jobs:
       - name: Build & Push via build-push-action
         uses: docker/build-push-action@v4
         with:
-          context: src/DesafioCCAA
-          file: DesafioCCAA.Api/Dockerfile
+          context: .  
+          file: src/DesafioCCAA/DesafioCCAA.Api/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest
