@@ -15,7 +15,6 @@
   <ItemGroup>
     <Folder Include="UseCases\Books\Commands\Handlers\" />
     <Folder Include="UseCases\Books\Notifications\" />
-    <Folder Include="UseCases\Books\ViewModels\" />
     <Folder Include="UseCases\Books\Queries\Handlers\" />
   </ItemGroup>
 

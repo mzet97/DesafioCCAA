@@ -1,4 +1,5 @@
 ﻿using DesafioCCAA.Api.Common.Api;
+using DesafioCCAA.Api.Endpoints.Auth;
 using DesafioCCAA.Api.Endpoints.Genders;
 using DesafioCCAA.Api.Endpoints.Publishers;
 using Microsoft.AspNetCore.Mvc;
@@ -29,10 +30,13 @@ public static class Endpoints
                 return Results.Ok(new { Message = "Este é um exemplo de cache", Timestamp = DateTime.UtcNow });
             }).CacheOutput("DefaultPolicy");
 
-        //endpoints.MapGroup("auth")
-        //   .WithTags("auth")
-        //   .MapEndpoint<RegisterUserEndpoint>()
-        //   .MapEndpoint<LoginUserEndpoint>();
+        endpoints.MapGroup("Auth")
+           .WithTags("Auth")
+           .MapEndpoint<RegisterUserEndpoint>()
+           .MapEndpoint<LoginUserEndpoint>()
+           .MapEndpoint<ConfirmEmailEndpoint>()
+           .MapEndpoint<ForgotPasswordEndpoint>()
+           .MapEndpoint<ResetPasswordEndpoint>();
 
         //endpoints.MapGroup("usuarios")
         //   .WithTags("usuarios")

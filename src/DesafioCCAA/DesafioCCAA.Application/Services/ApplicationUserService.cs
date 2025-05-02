@@ -127,6 +127,17 @@ public class ApplicationUserService : IApplicationUserService
         return await _signInManager.PasswordSignInAsync(userName, password, isPersistent, lockoutOnFailure);
     }
 
+    public async Task<SignInResult> PasswordSignInByEmailAsync(string email, string password, bool isPersistent, bool lockoutOnFailure)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            return SignInResult.Failed;
+        }
+
+        return await _signInManager.PasswordSignInAsync(user, password, isPersistent, lockoutOnFailure);
+    }
+
     public async Task TrySignInAsync(ApplicationUser user)
     {
         await _signInManager.SignInAsync(user, false);
@@ -152,5 +163,15 @@ public class ApplicationUserService : IApplicationUserService
     {
         if (user == null) throw new ArgumentNullException(nameof(user));
         return await _userManager.ConfirmEmailAsync(user, token);
+    }
+
+    public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+    {
+        return await _userManager.GeneratePasswordResetTokenAsync(user);
+    }
+
+    public async Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string newPassword)
+    {
+        return await _userManager.ResetPasswordAsync(user, token, newPassword);
     }
 }

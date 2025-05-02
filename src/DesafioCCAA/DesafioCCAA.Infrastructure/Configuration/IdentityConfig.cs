@@ -16,6 +16,8 @@ public static class IdentityConfig
 {
     public static IServiceCollection AddIdentityConfig(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();

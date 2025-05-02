@@ -9,53 +9,37 @@ namespace DesafioCCAA.Infrastructure.Email;
 
 public class SendEmail : ISendEmail
 {
-    private readonly SmtpSettings _smtpSettings;
+    private readonly SmtpSettings _smtp;
     private readonly IWebHostEnvironment _env;
 
-    public SendEmail(IOptions<SmtpSettings> smtpSettings, IWebHostEnvironment env)
+    public SendEmail(IOptions<SmtpSettings> opts, IWebHostEnvironment env)
     {
-        _smtpSettings = smtpSettings.Value;
+        _smtp = opts.Value;
         _env = env;
     }
 
     public async Task SendEmailAsync(string email, string subject, string body)
     {
-        try
-        {
-            var message = new MimeMessage();
+        var msg = new MimeMessage();
+        msg.From.Add(new MailboxAddress(_smtp.SenderName, _smtp.SenderEmail));
+        msg.To.Add(new MailboxAddress("", email));
+        msg.Subject = subject;
+        msg.Body = new TextPart("html") { Text = body };
 
-            message.From.Add(new MailboxAddress(_smtpSettings.SenderName,
-                                                _smtpSettings.SenderEmail));
-            message.To.Add(new MailboxAddress("destino", email));
-            message.Subject = subject;
-            message.Body = new TextPart("html")
-            {
-                Text = body
-            };
+        using var client = new MailKit.Net.Smtp.SmtpClient();
 
-            using (var client = new SmtpClient())
-            {
-                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+        client.ServerCertificateValidationCallback = (_, _, _, _) => true;
 
-                if (_env.IsDevelopment())
-                {
-                    await client.ConnectAsync(_smtpSettings.Server,
-                                              _smtpSettings.Port, true);
-                }
-                else
-                {
-                    await client.ConnectAsync(_smtpSettings.Server);
-                }
+        var socketOpts = _env.IsDevelopment()
+            ? MailKit.Security.SecureSocketOptions.None
+            : MailKit.Security.SecureSocketOptions.StartTls;
 
-                await client.AuthenticateAsync(_smtpSettings.Username,
-                                               _smtpSettings.Password);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-            }
-        }
-        catch (Exception e)
-        {
-            throw new InvalidOperationException(e.Message);
-        }
+        await client.ConnectAsync(_smtp.Server, _smtp.Port, socketOpts);
+
+        if (!string.IsNullOrWhiteSpace(_smtp.Username))
+            await client.AuthenticateAsync(_smtp.Username, _smtp.Password);
+
+        await client.SendAsync(msg);
+        await client.DisconnectAsync(true);
     }
 }
