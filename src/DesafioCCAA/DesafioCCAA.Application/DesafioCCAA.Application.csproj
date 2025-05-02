@@ -17,10 +17,6 @@
     <Folder Include="UseCases\Books\Notifications\" />
     <Folder Include="UseCases\Books\ViewModels\" />
     <Folder Include="UseCases\Books\Queries\Handlers\" />
-    <Folder Include="UseCases\Genders\Commands\Handlers\" />
-    <Folder Include="UseCases\Genders\Notifications\" />
-    <Folder Include="UseCases\Genders\ViewModels\" />
-    <Folder Include="UseCases\Genders\Queries\Handlers\" />
   </ItemGroup>
 
   <ItemGroup>

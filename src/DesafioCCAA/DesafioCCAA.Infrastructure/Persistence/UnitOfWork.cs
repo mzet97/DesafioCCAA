@@ -1,12 +1,14 @@
 ﻿using DesafioCCAA.Domain.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 namespace DesafioCCAA.Infrastructure.Persistence;
 
-public class UnitOfWork : IUnitOfWork, IAsyncDisposable
+public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<UnitOfWork> _logger;
+    private IDbContextTransaction? _transaction;
 
     public IRepositoryFactory RepositoryFactory { get; }
 
@@ -20,58 +22,79 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         _logger = logger;
     }
 
-    public async Task BeginTransactionAsync()
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        if (_context.Database.CurrentTransaction != null)
+        if (_transaction != null)
             throw new InvalidOperationException("Já existe uma transação em andamento.");
 
-        await _context.Database.BeginTransactionAsync();
-
+        _transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         _logger.LogInformation("Transação iniciada.");
     }
 
-    public async Task CommitAsync()
+    public async Task CommitAsync(CancellationToken cancellationToken = default)
     {
-        if (_context.Database.CurrentTransaction == null)
+        if (_transaction == null)
             throw new InvalidOperationException("Transação não iniciada.");
 
         try
         {
-            await _context.SaveChangesAsync();
-            await _context.Database.CommitTransactionAsync();
-            _logger.LogInformation("Transação commited com sucesso.");
+            await _context.SaveChangesAsync(cancellationToken);
+            await _transaction.CommitAsync(cancellationToken);
+            _logger.LogInformation("Transação comitada com sucesso.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro no commit, fazendo rollback.");
-            await _context.Database.RollbackTransactionAsync();
+            _logger.LogError(ex, "Erro no commit, realizando rollback.");
+            await _transaction.RollbackAsync(cancellationToken);
             throw;
+        }
+        finally
+        {
+            await DisposeTransactionAsync();
         }
     }
 
-    public async Task RollbackAsync()
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
     {
-        if (_context.Database.CurrentTransaction == null)
-            throw new InvalidOperationException("Não há transação para rollback.");
+        if (_transaction == null)
+            throw new InvalidOperationException("Transação não iniciada.");
 
-        await _context.Database.RollbackTransactionAsync();
-
+        await _transaction.RollbackAsync(cancellationToken);
         _logger.LogWarning("Transação revertida (rollback).");
+        await DisposeTransactionAsync();
+    }
+
+    private async Task DisposeTransactionAsync()
+    {
+        if (_transaction != null)
+        {
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
     }
 
     public void Dispose()
     {
+        if (_transaction != null)
+        {
+            _transaction.Rollback();
+            _transaction.Dispose();
+            _transaction = null;
+        }
+
         RepositoryFactory.Dispose();
-        _context.Dispose();
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_context.Database.CurrentTransaction != null)
-            await _context.Database.RollbackTransactionAsync();
+        if (_transaction != null)
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
 
         RepositoryFactory.Dispose();
-
-        await _context.DisposeAsync();
     }
 }
+

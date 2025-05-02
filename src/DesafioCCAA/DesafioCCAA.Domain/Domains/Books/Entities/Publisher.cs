@@ -40,6 +40,8 @@ public class Publisher : Entity<Publisher>
                 DateTime.Now,
                 null, null, false);
 
+        entity.Activate();
+
         entity.AddEvent(
             new PublisherCreated(entity));
 

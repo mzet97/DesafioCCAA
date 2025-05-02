@@ -1,4 +1,5 @@
 ﻿using DesafioCCAA.Api.Common.Api;
+using DesafioCCAA.Api.Endpoints.Genders;
 using DesafioCCAA.Api.Endpoints.Publishers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,6 +54,17 @@ public static class Endpoints
             .MapEndpoint<DeletesPublisherEndpoint>()
             .MapEndpoint<AtivesPublisherEndpoint>()
             .MapEndpoint<DisablesPublisherEndpoint>();
+
+        endpoints.MapGroup("Genders")
+            .WithTags("Genders")
+            //.RequireAuthorization()
+            .MapEndpoint<CreateGenderEndpoint>()
+            .MapEndpoint<GetByIdGenderEndpoint>()
+            .MapEndpoint<SearchGenderEndpoint>()
+            .MapEndpoint<UpdateGenderEndpoint>()
+            .MapEndpoint<DeletesGenderEndpoint>()
+            .MapEndpoint<AtivesGenderEndpoint>()
+            .MapEndpoint<DisablesGenderEndpoint>();
     }
 
 

@@ -13,6 +13,7 @@ public static class ApiConfig
         services.ResolveDependenciesInfrastructure();
         services.ResolveDependenciesApplication();
 
+        services.AddMessageBus(configuration);
         services.AddApplicationServices();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerConfig();

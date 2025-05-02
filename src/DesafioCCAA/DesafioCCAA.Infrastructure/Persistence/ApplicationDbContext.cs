@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace DesafioCCAA.Infrastructure.Persistence;
 
-public class ApplicationDbContext(DbContextOptions options, ILoggerFactory loggerFactory) : IdentityDbContext<
+public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
     ApplicationUser,
     ApplicationRole,
     Guid,
@@ -22,11 +22,6 @@ public class ApplicationDbContext(DbContextOptions options, ILoggerFactory logge
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (loggerFactory != null)
-        {
-            optionsBuilder.UseLoggerFactory(loggerFactory);
-        }
-
         base.OnConfiguring(optionsBuilder);
     }
 

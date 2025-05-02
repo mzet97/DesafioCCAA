@@ -4,9 +4,9 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
     IRepositoryFactory RepositoryFactory { get; }
 
-    Task BeginTransactionAsync();
+    Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
-    Task CommitAsync();
+    Task CommitAsync(CancellationToken cancellationToken = default);
 
-    Task RollbackAsync();
+    Task RollbackAsync(CancellationToken cancellationToken = default);
 }

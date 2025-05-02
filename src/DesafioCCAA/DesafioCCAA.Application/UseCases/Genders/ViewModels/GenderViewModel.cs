@@ -1,14 +1,14 @@
 ﻿using DesafioCCAA.Domain.Domains.Books.Entities;
 using DesafioCCAA.Shared.ViewModels;
 
-namespace DesafioCCAA.Application.UseCases.Publishers.ViewModels;
+namespace DesafioCCAA.Application.UseCases.Genders.ViewModels;
 
-public class PublisherViewModel : BaseViewModel
+public class GenderViewModel : BaseViewModel
 {
     public string Name { get; set; }
     public string Description { get; set; }
 
-    public PublisherViewModel(
+    public GenderViewModel(
         Guid id,
         string name,
         string description,
@@ -26,15 +26,15 @@ public class PublisherViewModel : BaseViewModel
         Description = description;
     }
 
-    public static PublisherViewModel FromEntity(Publisher publisher)
+    public static GenderViewModel FromEntity(Gender Gender)
     {
-        return new PublisherViewModel(
-            publisher.Id,
-            publisher.Name,
-            publisher.Description,
-            publisher.CreatedAt,
-            publisher.UpdatedAt,
-            publisher.DeletedAt,
-            publisher.IsDeleted);
+        return new GenderViewModel(
+            Gender.Id,
+            Gender.Name,
+            Gender.Description,
+            Gender.CreatedAt,
+            Gender.UpdatedAt,
+            Gender.DeletedAt,
+            Gender.IsDeleted);
     }
 }
