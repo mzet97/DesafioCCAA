@@ -1,6 +1,4 @@
-﻿using DesafioCCAA.Application.UseCases.Genders.Commands;
-using DesafioCCAA.Application.UseCases.Genders.Queries;
-using DesafioCCAA.Application.UseCases.Publishers.Commands;
+﻿using DesafioCCAA.Application.UseCases.Publishers.Commands;
 using DesafioCCAA.Application.UseCases.Publishers.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -118,11 +116,29 @@ public class PublishersController(
         {
             var result = await mediator.Send(command);
 
+            if(result is null)
+                throw new Exception("Erro ao criar a editora");
+
+            if (!result.Success)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    result.Message
+                );
+                return View(command);
+            }
+
+
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             logger.LogError(ex.Message, ex);
+
+            ModelState.AddModelError(
+               string.Empty,
+               "Ocorreu um erro ao criar a editora: " + ex.Message
+            );
 
             return View();
         }
@@ -155,11 +171,28 @@ public class PublishersController(
         {
             var result = await mediator.Send(command);
 
+            if (result is null)
+                throw new Exception("Erro ao editar a editora");
+
+            if (!result.Success)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    result.Message
+                );
+                return View(command);
+            }
+
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             logger.LogError(ex.Message, ex);
+
+            ModelState.AddModelError(
+               string.Empty,
+               "Ocorreu um erro ao editar a editora: " + ex.Message
+            );
 
             return View();
         }

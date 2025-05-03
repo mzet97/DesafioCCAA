@@ -116,11 +116,28 @@ public class GendersController(
         {
             var result = await mediator.Send(command);
 
+            if (result is null)
+                throw new Exception("Erro ao criar a gênero");
+
+            if (!result.Success)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    result.Message
+                );
+                return View(command);
+            }
+
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             logger.LogError(ex.Message, ex);
+
+            ModelState.AddModelError(
+              string.Empty,
+              "Ocorreu um erro ao criar a gênero: " + ex.Message
+            );
 
             return View();
         }
@@ -153,11 +170,28 @@ public class GendersController(
         {
             var result = await mediator.Send(command);
 
+            if (result is null)
+                throw new Exception("Erro ao editar a gênero");
+
+            if (!result.Success)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    result.Message
+                );
+                return View(command);
+            }
+
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             logger.LogError(ex.Message, ex);
+
+            ModelState.AddModelError(
+              string.Empty,
+              "Ocorreu um erro ao editar a gênero: " + ex.Message
+            );
 
             return View();
         }
