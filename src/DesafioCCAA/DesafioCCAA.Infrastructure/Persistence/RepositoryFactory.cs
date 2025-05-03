@@ -22,29 +22,4 @@ public class RepositoryFactory : IRepositoryFactory
 
     private IPublisherRepository _publisherRepository;
     public IPublisherRepository PublisherRepository { get => _publisherRepository ?? (_publisherRepository = new PublisherRepository(_dbContext)); }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private bool _disposed = false;
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed && disposing)
-        {
-            _bookRepository?.Dispose();
-            _genderRepository?.Dispose();
-            _publisherRepository?.Dispose();
-        }
-
-        _disposed = true;
-    }
-
-    ~RepositoryFactory()
-    {
-        Dispose(false);
-    }
 }

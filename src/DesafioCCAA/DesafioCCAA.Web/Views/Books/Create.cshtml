@@ -1,0 +1,72 @@
+﻿@model CreateBookCommand
+@{
+    ViewData["Title"] = "Cadastro de Livro";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@{
+    var hasErrors = ViewData.ModelState.ErrorCount > 0;
+}
+@if (hasErrors)
+{
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+}
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" placeholder="Título do livro" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Author" class="form-label"></label>
+        <input asp-for="Author" class="form-control" placeholder="Autor" />
+        <span asp-validation-for="Author" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Synopsis" class="form-label"></label>
+        <textarea asp-for="Synopsis" class="form-control" rows="4" placeholder="Sinopse"></textarea>
+        <span asp-validation-for="Synopsis" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ISBN" class="form-label"></label>
+        <input asp-for="ISBN" class="form-control" placeholder="ISBN" />
+        <span asp-validation-for="ISBN" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="GenderId" class="form-label"></label>
+        <select asp-for="GenderId" asp-items="ViewBag.Genders" class="form-select">
+            <option value="">-- Selecione o gênero --</option>
+        </select>
+        <span asp-validation-for="GenderId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PublisherId" class="form-label"></label>
+        <select asp-for="PublisherId" asp-items="ViewBag.Publishers" class="form-select">
+            <option value="">-- Selecione a editora --</option>
+        </select>
+        <span asp-validation-for="PublisherId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label for="coverFile" class="form-label">Capa do Livro</label>
+        <input type="file" name="coverFile" id="coverFile" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Cadastrar</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Voltar</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

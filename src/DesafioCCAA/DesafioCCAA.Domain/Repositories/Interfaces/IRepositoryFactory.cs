@@ -2,7 +2,7 @@
 
 namespace DesafioCCAA.Domain.Repositories.Interfaces;
 
-public interface IRepositoryFactory : IDisposable
+public interface IRepositoryFactory
 {
     IBookRepository BookRepository { get; }
     IGenderRepository GenderRepository { get; }

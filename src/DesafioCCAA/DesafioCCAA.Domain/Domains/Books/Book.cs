@@ -56,6 +56,7 @@ public class Book : AggregateRoot<Book>
         GenderId = genderId;
         PublisherId = publisherId;
         UserCreatedId = userCreatedId;
+        UserUpdatedId = userCreatedId;
 
         Validate();
     }
@@ -120,6 +121,19 @@ public class Book : AggregateRoot<Book>
 
         Validate();
 
+        AddEvent(
+            new BookUpdated(this));
+    }
+
+    public void UpdateImage(
+        CoverImage coverImage,
+        Guid userUpdatedId,
+        ApplicationUser userUpdated)
+    {
+        CoverImage = coverImage;
+        UserUpdatedId = userUpdatedId;
+        UserUpdated = userUpdated;
+        Validate();
         AddEvent(
             new BookUpdated(this));
     }

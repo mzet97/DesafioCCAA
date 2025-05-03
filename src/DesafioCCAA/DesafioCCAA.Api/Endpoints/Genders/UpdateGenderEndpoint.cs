@@ -18,7 +18,7 @@ public class UpdateGenderEndpoint : IEndpoint
             .Produces<BaseResult<GenderViewModel>>();
 
     private static async Task<IResult> HandleAsync(
-    IMediator mediator,
+        IMediator mediator,
         [FromRoute] Guid id,
         [FromBody] UpdateGenderCommand command)
     {

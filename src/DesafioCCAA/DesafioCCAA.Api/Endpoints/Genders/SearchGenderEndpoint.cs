@@ -26,6 +26,7 @@ public class SearchGenderEndpoint : IEndpoint
         {
             Description = search.Description ?? "",
             Name = search.Name ?? "",
+            GlobalFilter = search.GlobalFilter ?? "",
             Id = search.Id ?? Guid.Empty,
             CreatedAt = search.CreatedAt ?? default,
             UpdatedAt = search.UpdatedAt ?? default,
@@ -51,12 +52,13 @@ public class SearchOrder
 {
     [FromQuery] public string? Description { get; set; }
     [FromQuery] public string? Name { get; set; }
+    [FromQuery] public string? GlobalFilter { get; set; }
     [FromQuery] public Guid? Id { get; set; }
     [FromQuery] public DateTime? DateOrder { get; set; }
     [FromQuery] public DateTime? CreatedAt { get; set; }
     [FromQuery] public DateTime? UpdatedAt { get; set; }
     [FromQuery] public DateTime? DeletedAt { get; set; }
-    [FromQuery] public bool? IsDeleted { get; set; } = false;
+    [FromQuery] public bool? IsDeleted { get; set; } = null;
     [FromQuery] public string? Order { get; set; }
     [FromQuery] public bool? Include { get; set; }
     [FromQuery] public int? PageIndex { get; set; } = 1;

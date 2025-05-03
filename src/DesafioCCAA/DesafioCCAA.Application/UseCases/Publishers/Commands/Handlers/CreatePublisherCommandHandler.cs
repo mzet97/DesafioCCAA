@@ -48,9 +48,5 @@ public class CreatePublisherCommandHandler(
             await unitOfWork.RollbackAsync();
             throw new Exception("Error to create Publisher", ex);
         }
-        finally
-        {
-            await unitOfWork.DisposeAsync();
-        }
     }
 }

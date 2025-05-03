@@ -1,5 +1,6 @@
 ﻿using DesafioCCAA.Api.Common.Api;
 using DesafioCCAA.Api.Endpoints.Auth;
+using DesafioCCAA.Api.Endpoints.Books;
 using DesafioCCAA.Api.Endpoints.Genders;
 using DesafioCCAA.Api.Endpoints.Publishers;
 using Microsoft.AspNetCore.Mvc;
@@ -38,19 +39,23 @@ public static class Endpoints
            .MapEndpoint<ForgotPasswordEndpoint>()
            .MapEndpoint<ResetPasswordEndpoint>();
 
-        //endpoints.MapGroup("usuarios")
-        //   .WithTags("usuarios")
-        //   .RequireAuthorization()
-        //   .MapEndpoint<CreateUserEndpoint>()
-        //   .MapEndpoint<GetByIdUserEndpoint>()
-        //   .MapEndpoint<SearchUserEndpoint>()
-        //   .MapEndpoint<UpdateUserEndpoint>()
-        //   .MapEndpoint<DeleteUserEndpoint>()
-        //   .MapEndpoint<UpdatePasswordEndpoint>();
+        endpoints.MapGroup("Books")
+            .WithTags("Books")
+            .RequireAuthorization()
+            .MapEndpoint<CreateBookEndpoint>()
+            .MapEndpoint<GetByIdBookEndpoint>()
+            .MapEndpoint<SearchBookEndpoint>()
+            .MapEndpoint<UpdateBookEndpoint>()
+            .MapEndpoint<DeletesBookEndpoint>()
+            .MapEndpoint<AtivesBookEndpoint>()
+            .MapEndpoint<DisablesBookEndpoint>()
+            .MapEndpoint<UploadImageEndpoint>()
+            .MapEndpoint<GetFileBase64Endpoint>()
+            .MapEndpoint<DownloadFileEndpoint>();
 
         endpoints.MapGroup("Publishers")
             .WithTags("Publishers")
-            //.RequireAuthorization()
+            .RequireAuthorization()
             .MapEndpoint<CreatePublisherEndpoint>()
             .MapEndpoint<GetByIdPublisherEndpoint>()
             .MapEndpoint<SearchPublisherEndpoint>()
@@ -61,7 +66,7 @@ public static class Endpoints
 
         endpoints.MapGroup("Genders")
             .WithTags("Genders")
-            //.RequireAuthorization()
+            .RequireAuthorization()
             .MapEndpoint<CreateGenderEndpoint>()
             .MapEndpoint<GetByIdGenderEndpoint>()
             .MapEndpoint<SearchGenderEndpoint>()

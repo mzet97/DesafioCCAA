@@ -1,0 +1,160 @@
+﻿@{
+    ViewData["Title"] = "Livros";
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+
+<div class="d-flex flex-wrap align-items-center mb-3">
+    <div class="mb-2">
+        <button id="activateBtn" class="btn btn-success btn-sm me-2" disabled>Ativar</button>
+        <button id="deactivateBtn" class="btn btn-warning btn-sm me-2" disabled>Desativar</button>
+        <button id="deleteBtn" class="btn btn-danger btn-sm me-2" disabled>Excluir</button>
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle"></i> Cadastrar</a>
+    </div>
+    <div class="ms-auto d-flex align-items-center mb-2">
+        <label for="pageSizeSelect" class="me-2 mb-0">Itens por página:</label>
+        <select id="pageSizeSelect" class="form-select form-select-sm w-auto">
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+        </select>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table id="booksTable" class="table table-striped table-bordered table-hover w-100">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all" /></th>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Sinopse</th>
+                <th>ISBN</th>
+                <th>Gênero</th>
+                <th>Editora</th>
+                <th>Criado Em</th>
+                <th>Atualizado Em</th>
+                <th>Deletado Em</th>
+                <th>Desativado</th>
+                <th>Ações</th>
+            </tr>
+            <tr class="filter-row">
+                <th></th>
+                <th><input class="form-control form-control-sm column-search" placeholder="Buscar ID" /></th>
+                <th><input class="form-control form-control-sm column-search" placeholder="Buscar Título" /></th>
+                <th><input class="form-control form-control-sm column-search" placeholder="Buscar Autor" /></th>
+                <th><input class="form-control form-control-sm column-search" placeholder="Buscar Sinopse" /></th>
+                <th><input class="form-control form-control-sm column-search" placeholder="Buscar ISBN" /></th>
+                <th><input class="form-control form-control-sm column-search" placeholder="Buscar Gênero" /></th>
+                <th><input class="form-control form-control-sm column-search" placeholder="Buscar Editora" /></th>
+                <th><input type="date" class="form-control form-control-sm column-search" /></th>
+                <th><input type="date" class="form-control form-control-sm column-search" /></th>
+                <th><input type="date" class="form-control form-control-sm column-search" /></th>
+                <th>
+                    <select class="form-select form-select-sm column-search">
+                        <option value="">Todos</option>
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            var table = $('#booksTable').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                pageLength: 5,
+                lengthChange: false,
+                ajax: {
+                    url: '@Url.Action("LoadData", "Books")',
+                    type: 'GET'
+                },
+                columns: [
+                    { data: null, orderable: false, className: 'select-checkbox', defaultContent: '' },
+                    { data: 'id' },
+                    { data: 'title' },
+                    { data: 'author' },
+                    { data: 'synopsis' },
+                    { data: 'isbn' },
+                    { data: 'genderName' },
+                    { data: 'publisherName' },
+                    { data: 'createdAt', render: d => new Date(d).toLocaleDateString('pt-BR') },
+                    { data: 'updatedAt', render: d => new Date(d).toLocaleDateString('pt-BR') },
+                    { data: 'deletedAt', render: d => d ? new Date(d).toLocaleDateString('pt-BR') : '-' },
+                    { data: 'isDeleted', render: d => d ? 'Sim' : 'Não' },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return '<a href="@Url.Action("Edit", "Books")/' + row.id + '" class="btn btn-sm btn-primary me-1">✏️</a>' +
+                                '<a href="@Url.Action("Delete", "Books")/' + row.id + '" class="btn btn-sm btn-danger">🗑️</a>';
+                        }
+                    }
+                ],
+                select: { style: 'multi', selector: 'td:first-child' },
+                order: [[1, 'asc']],
+                buttons: [
+                    { text: 'Selecionar tudo', action: (e, dt) => dt.rows().select() },
+                    { text: 'Limpar seleção', action: (e, dt) => dt.rows().deselect() }
+                ],
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json' },
+                initComplete: function () {
+                    this.api().columns().every(function (idx) {
+                        var column = this;
+                        $('input, select', $('.filter-row th')[idx])
+                            .on('change keyup clear', function () {
+                                column.search(this.value).draw();
+                            });
+                    });
+                }
+            });
+
+            // seleção geral
+            $('#select-all').on('click', function () {
+                this.checked ? table.rows().select() : table.rows().deselect();
+            });
+
+            // habilita/desabilita botões conforme seleção
+            table.on('select deselect', function () {
+                var cnt = table.rows({ selected: true }).count();
+                $('#activateBtn, #deactivateBtn, #deleteBtn').prop('disabled', cnt === 0);
+            });
+
+            // ações em massa
+            function bulkAction(url) {
+                var ids = table.rows({ selected: true }).data().pluck('id').toArray();
+                if (!ids.length) return;
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(ids),
+                    success: function () { table.ajax.reload(); }
+                });
+            }
+
+            $('#activateBtn').click(() => bulkAction('@Url.Action("BulkActivate", "Books")'));
+            $('#deactivateBtn').click(() => bulkAction('@Url.Action("BulkDeactivate", "Books")'));
+            $('#deleteBtn').click(() => {
+                if (confirm('Excluir ' + table.rows({ selected: true }).count() + ' itens?')) {
+                    bulkAction('@Url.Action("BulkDelete", "Books")');
+                }
+            });
+
+            // controle de itens por página
+            $('#pageSizeSelect').on('change', function () {
+                table.page.len($(this).val()).draw();
+            });
+        });
+    </script>
+}

@@ -19,7 +19,7 @@ try
     builder.Host.ConfigureSerilog(builder.Configuration);
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog();
-
+    builder.Services.AddHttpContextAccessor();
     builder.Services.AddApiConfig(builder.Configuration);
 
     var app = builder.Build();

@@ -48,9 +48,5 @@ public class CreateGenderCommandHandler(
             await unitOfWork.RollbackAsync();
             throw new Exception("Error to create Gender", ex);
         }
-        finally
-        {
-            await unitOfWork.DisposeAsync();
-        }
     }
 }

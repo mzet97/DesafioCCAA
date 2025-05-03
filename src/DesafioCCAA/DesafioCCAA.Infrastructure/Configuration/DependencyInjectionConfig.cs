@@ -14,7 +14,6 @@ public static class DependencyInjectionConfig
 {
     public static IServiceCollection ResolveDependenciesInfrastructure(this IServiceCollection services)
     {
-        services.AddScoped<DbContext, ApplicationDbContext>();
 
         services.AddScoped<IRepositoryFactory, RepositoryFactory>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();

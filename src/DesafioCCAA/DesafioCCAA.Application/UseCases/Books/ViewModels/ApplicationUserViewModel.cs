@@ -1,4 +1,6 @@
-﻿namespace DesafioCCAA.Application.UseCases.Books.ViewModels;
+﻿using DesafioCCAA.Domain.Domains.Identities;
+
+namespace DesafioCCAA.Application.UseCases.Books.ViewModels;
 
 public class ApplicationUserViewModel
 {
@@ -6,4 +8,30 @@ public class ApplicationUserViewModel
     public string Name { get; set; }
     public string Email { get; set; }
     public DateTime BirthDate { get; set; }
+
+    public ApplicationUserViewModel()
+    {
+        
+    }
+
+    public ApplicationUserViewModel(
+        Guid id,
+        string name,
+        string email,
+        DateTime birthDate)
+    {
+        Id = id;
+        Name = name;
+        Email = email;
+        BirthDate = birthDate;
+    }
+
+    public static ApplicationUserViewModel FromEntity(ApplicationUser entity)
+    {
+        return new ApplicationUserViewModel(
+            entity.Id,
+            entity.UserName,
+            entity.Email,
+            entity.BirthDate);
+    }
 }

@@ -38,11 +38,11 @@ public class UpdateGenderCommandHandler(
 
             await GenderRepository.UpdateAsync(entityDb);
 
-            unitOfWork.CommitAsync().Wait();
+            await unitOfWork.CommitAsync();
 
             foreach (var @event in entityDb.Events)
             {
-                mediator.Publish(@event).Wait();
+                await mediator.Publish(@event);
             }
 
             return new BaseResult<Guid>(entityDb.Id, true, "Gender updated successfully");
@@ -52,10 +52,6 @@ public class UpdateGenderCommandHandler(
             logger.LogError(ex, "Error to update Gender");
             await unitOfWork.RollbackAsync();
             return new BaseResult<Guid>(entityDb.Id, false, "Error to update Gender");
-        }
-        finally
-        {
-            await unitOfWork.DisposeAsync();
         }
     }
 }

@@ -38,11 +38,11 @@ public class UpdatePublisherCommandHandler(
             
             await publisherRepository.UpdateAsync(entityDb);
             
-            unitOfWork.CommitAsync().Wait();
+            await unitOfWork.CommitAsync();
             
             foreach (var @event in entityDb.Events)
             {
-                mediator.Publish(@event).Wait();
+                await mediator.Publish(@event);
             }
             
             return new BaseResult<Guid>(entityDb.Id, true, "Publisher updated successfully");
@@ -52,10 +52,6 @@ public class UpdatePublisherCommandHandler(
             logger.LogError(ex, "Error to update Publisher");
             await unitOfWork.RollbackAsync();
             return new BaseResult<Guid>(entityDb.Id, false, "Error to update Publisher");
-        }
-        finally
-        {
-           await unitOfWork.DisposeAsync();
         }
     }
 }

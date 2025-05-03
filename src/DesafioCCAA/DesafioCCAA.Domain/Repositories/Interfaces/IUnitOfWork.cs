@@ -1,6 +1,6 @@
 ﻿namespace DesafioCCAA.Domain.Repositories.Interfaces;
 
-public interface IUnitOfWork : IDisposable, IAsyncDisposable
+public interface IUnitOfWork
 {
     IRepositoryFactory RepositoryFactory { get; }
 
