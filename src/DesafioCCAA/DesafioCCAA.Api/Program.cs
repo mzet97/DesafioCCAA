@@ -1,6 +1,7 @@
 using DesafioCCAA.Api.Configuration;
 using DesafioCCAA.Api.Endpoints;
 using DesafioCCAA.Infrastructure.Configuration;
+using DesafioCCAA.Infrastructure.Middlewares;
 using Serilog;
 
 try
@@ -33,6 +34,9 @@ try
         app.UseCors("Production");
         app.UseHsts();
     }
+
+    app.UseMiddleware<RequestLoggingMiddleware>();
+    app.UseCustomSerilogRequestLogging();
 
     app.UseRouting();
     app.UseAppConfig();

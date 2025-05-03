@@ -1,0 +1,35 @@
+/* site.css */
+
+/* Remove posicionamento absoluto do footer para usar o flexbox sticky-footer */
+footer {
+    /*position: absolute;*/
+    /*bottom: 0;*/
+    width: 100%;
+}
+
+/* Garante que o link da marca quebre em telas pequenas */
+.navbar-brand {
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Use word-wrap para dropdowns longos */
+.dropdown-menu {
+    word-wrap: break-word;
+}
+
+/* Espaçamento interno no main para não “colar” no container */
+main {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* Para tabelas DataTables, envolva sempre em .table-responsive */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Remove margin-bottom no body (já controlado pelo flex) */
+body {
+    margin-bottom: 0;
+}

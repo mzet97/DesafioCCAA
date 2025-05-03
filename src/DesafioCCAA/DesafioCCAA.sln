@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesafioCCAA.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesafioCCAA.Api", "DesafioCCAA.Api\DesafioCCAA.Api.csproj", "{9736AFC6-BFAA-4ADB-B319-A11255915867}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesafioCCAA.Mvc", "DesafioCCAA.Mvc\DesafioCCAA.Mvc.csproj", "{3E78A9E0-F6BE-4DB5-B6B1-951B18A1FF41}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesafioCCAA.Web", "DesafioCCAA.Web\DesafioCCAA.Web.csproj", "{95A6F7C1-7664-45BB-8EA8-8049F2DF52DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{9736AFC6-BFAA-4ADB-B319-A11255915867}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9736AFC6-BFAA-4ADB-B319-A11255915867}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9736AFC6-BFAA-4ADB-B319-A11255915867}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E78A9E0-F6BE-4DB5-B6B1-951B18A1FF41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E78A9E0-F6BE-4DB5-B6B1-951B18A1FF41}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E78A9E0-F6BE-4DB5-B6B1-951B18A1FF41}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E78A9E0-F6BE-4DB5-B6B1-951B18A1FF41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95A6F7C1-7664-45BB-8EA8-8049F2DF52DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95A6F7C1-7664-45BB-8EA8-8049F2DF52DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95A6F7C1-7664-45BB-8EA8-8049F2DF52DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95A6F7C1-7664-45BB-8EA8-8049F2DF52DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

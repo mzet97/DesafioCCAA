@@ -1,5 +1,5 @@
 ﻿using DesafioCCAA.Api.Extensions;
-using DesafioCCAA.Api.Middlewares;
+using DesafioCCAA.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 

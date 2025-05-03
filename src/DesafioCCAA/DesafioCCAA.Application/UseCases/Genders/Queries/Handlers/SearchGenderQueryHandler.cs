@@ -16,6 +16,14 @@ public class SearchGenderQueryHandler(IUnitOfWork unitOfWork) :
         Expression<Func<Gender, bool>>? filter = PredicateBuilder.New<Gender>(true);
         Func<IQueryable<Gender>, IOrderedQueryable<Gender>>? ordeBy = null;
 
+        if (!string.IsNullOrWhiteSpace(request.GlobalFilter))
+        {
+            filter = filter.And(x =>
+                x.Name.Contains(request.Name) ||
+                x.Description.Contains(request.Description)
+            );
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
             filter = filter.And(x => x.Name.Contains(request.Name));
@@ -46,33 +54,58 @@ public class SearchGenderQueryHandler(IUnitOfWork unitOfWork) :
             filter = filter.And(x => x.DeletedAt == request.DeletedAt);
         }
 
-        filter = filter.And(x => x.IsDeleted == request.IsDeleted);
+        if(request.IsDeleted is not null)
+            filter = filter.And(x => x.IsDeleted == request.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(request.Order))
         {
             switch (request.Order)
             {
-                case "Id":
+                case "Id asc":
                     ordeBy = x => x.OrderBy(n => n.Id);
                     break;
 
-                case "Name":
+                case "Id desc":
+                    ordeBy = x => x.OrderByDescending(n => n.Id);
+                    break;
+
+                case "Name asc":
                     ordeBy = x => x.OrderBy(n => n.Name);
                     break;
 
-                case "Description":
+                case "Name desc":
+                    ordeBy = x => x.OrderByDescending(n => n.Name);
+                    break;
+
+                case "Description asc":
                     ordeBy = x => x.OrderBy(n => n.Description);
                     break;
 
-                case "CreatedAt":
+                case "Description desc":
+                    ordeBy = x => x.OrderByDescending(n => n.Description);
+                    break;
+
+                case "CreatedAt asc":
                     ordeBy = x => x.OrderBy(n => n.CreatedAt);
                     break;
 
-                case "UpdatedAt":
+                case "CreatedAt desc":
+                    ordeBy = x => x.OrderByDescending(n => n.CreatedAt);
+                    break;
+
+                case "UpdatedAt asc":
                     ordeBy = x => x.OrderBy(n => n.UpdatedAt);
                     break;
 
-                case "DeletedAt":
+                case "UpdatedAt desc":
+                    ordeBy = x => x.OrderByDescending(n => n.UpdatedAt);
+                    break;
+
+                case "DeletedAt asc":
+                    ordeBy = x => x.OrderBy(n => n.DeletedAt);
+                    break;
+
+                case "DeletedAt desc":
                     ordeBy = x => x.OrderBy(n => n.DeletedAt);
                     break;
 

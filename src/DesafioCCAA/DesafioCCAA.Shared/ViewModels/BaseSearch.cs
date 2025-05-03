@@ -6,9 +6,9 @@ public abstract class BaseSearch
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
+    public bool? IsDeleted { get; set; }
     public string? Order { get; set; }
-
+    public string? GlobalFilter { get; set; }
     public int PageIndex { get; set; }
     public int PageSize { get; set; }
 

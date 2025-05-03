@@ -8,7 +8,7 @@ public static class ApiConfig
     public static IServiceCollection AddApiConfig(this IServiceCollection services, IConfiguration configuration)
     {
 
-        services.AddIdentityConfig(configuration);
+        services.AddApiIdentity(configuration);
         services.AddCorsConfig(configuration);
         services.ResolveDependenciesInfrastructure();
         services.ResolveDependenciesApplication();
