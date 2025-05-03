@@ -52,6 +52,8 @@ public class UnitOfWork : IUnitOfWork
         finally
         {
             await DisposeTransactionAsync();
+
+            _context.ChangeTracker.Clear();
         }
     }
 

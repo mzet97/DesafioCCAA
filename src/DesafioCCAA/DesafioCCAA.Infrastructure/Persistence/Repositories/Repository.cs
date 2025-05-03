@@ -22,7 +22,6 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
         if (entity == null) throw new ArgumentNullException(nameof(entity));
 
         await DbSet.AddAsync(entity);
-        await Db.SaveChangesAsync();
     }
 
     public virtual async Task<BaseResultList<TEntity>> SearchAsync(
@@ -62,7 +61,8 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public virtual async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        if (predicate == null) 
+            throw new ArgumentNullException(nameof(predicate));
 
         return await DbSet.AsNoTracking().Where(predicate).ToListAsync();
     }
@@ -74,31 +74,33 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public virtual async Task<TEntity?> GetByIdAsync(Guid id)
     {
-        if (id == Guid.Empty) throw new ArgumentException("ID não pode ser vazio", nameof(id));
+        if (id == Guid.Empty) 
+            throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         return await DbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public virtual async Task UpdateAsync(TEntity entity)
+    public virtual Task UpdateAsync(TEntity entity)
     {
-        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        if (entity is null) 
+            throw new ArgumentNullException(nameof(entity));
 
         entity.Update();
-
         DbSet.Update(entity);
-        await Db.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 
     public virtual async Task RemoveAsync(Guid id)
     {
-        if (id == Guid.Empty) throw new ArgumentException("ID não pode ser vazio", nameof(id));
+        if (id == Guid.Empty) 
+            throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         var entity = await DbSet.FindAsync(id);
 
-        if (entity != null)
+        if (entity is not null)
         {
             DbSet.Remove(entity);
-            await Db.SaveChangesAsync();
         }
         else
         {
@@ -109,7 +111,8 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public virtual async Task DisableAsync(Guid id)
     {
-        if (id == Guid.Empty) throw new ArgumentException("ID não pode ser vazio", nameof(id));
+        if (id == Guid.Empty) 
+            throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         var entity = await DbSet.FindAsync(id);
 
@@ -117,13 +120,13 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
         {
             entity.Disabled();
             DbSet.Update(entity);
-            await Db.SaveChangesAsync();
         }
     }
 
     public async Task ActiveAsync(Guid id)
     {
-        if (id == Guid.Empty) throw new ArgumentException("ID não pode ser vazio", nameof(id));
+        if (id == Guid.Empty) 
+            throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         var entity = await DbSet.FindAsync(id);
 
@@ -131,7 +134,6 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
         {
             entity.Activate();
             DbSet.Update(entity);
-            await Db.SaveChangesAsync();
         }
     }
 
