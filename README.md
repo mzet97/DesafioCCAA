@@ -1,5 +1,3 @@
-dockerfile run docker build -f src/DesafioCCAA/DesafioCCAA.Api/Dockerfile -t desafioccaa-api:latest .
-
 # Desafio CCAA
 
 ## Visão Geral do Projeto
@@ -63,7 +61,7 @@ Isso iniciará os containers necessários, incluindo o banco de dados e outros s
     cd src/DesafioCCAA/DesafioCCAA.Api
     ```
 2.  Restaure os pacotes do projeto:
-    ```bash
+    ```bash 
     dotnet restore
     ```
 3.  Execute a API:
