@@ -160,6 +160,7 @@ namespace DesafioCCAA.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -175,6 +176,10 @@ namespace DesafioCCAA.Infrastructure.Persistence.Migrations
                         .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
                 });
@@ -222,6 +227,7 @@ namespace DesafioCCAA.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
@@ -396,14 +402,12 @@ namespace DesafioCCAA.Infrastructure.Persistence.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<string>("FileName")
-                                .IsRequired()
                                 .HasMaxLength(255)
                                 .HasColumnType("nvarchar(255)")
                                 .HasColumnName("CoverImageFileName")
                                 .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
                             b1.Property<string>("Path")
-                                .IsRequired()
                                 .HasMaxLength(1000)
                                 .HasColumnType("nvarchar(1000)")
                                 .HasColumnName("CoverImagePath")
@@ -417,8 +421,7 @@ namespace DesafioCCAA.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("BookId");
                         });
 
-                    b.Navigation("CoverImage")
-                        .IsRequired();
+                    b.Navigation("CoverImage");
 
                     b.Navigation("Gender");
 

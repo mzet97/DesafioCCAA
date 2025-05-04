@@ -18,7 +18,7 @@ public class GetFileBase64QueryHandler(
         var book = await unitOfWork
             .RepositoryFactory
             .BookRepository
-            .GetByIdAsync(request.bookId);
+            .GetByIdNoTrackingAsync(request.bookId);
 
         if (book is null)
         {

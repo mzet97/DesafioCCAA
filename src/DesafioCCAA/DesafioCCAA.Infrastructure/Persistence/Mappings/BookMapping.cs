@@ -35,13 +35,13 @@ public class BookMapping : IEntityTypeConfiguration<Book>
             coverImage.Property(ci => ci.FileName)
                 .HasColumnName("CoverImageFileName")
                 .HasMaxLength(255)
-                .IsRequired()
+                .IsRequired(false)
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
             coverImage.Property(ci => ci.Path)
                 .HasColumnName("CoverImagePath")
                 .HasMaxLength(1000)
-                .IsRequired()
+                .IsRequired(false)
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS");
         });
 

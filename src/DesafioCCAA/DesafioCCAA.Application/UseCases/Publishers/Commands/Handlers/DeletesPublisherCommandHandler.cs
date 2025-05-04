@@ -33,7 +33,7 @@ public class DeletesPublisherCommandHandler(IUnitOfWork unitOfWork,
                 
                 await unitOfWork.RepositoryFactory
                     .PublisherRepository
-                     .RemoveAsync(id);
+                     .RemoveByIdAsync(id);
 
                 await unitOfWork.CommitAsync();
                 

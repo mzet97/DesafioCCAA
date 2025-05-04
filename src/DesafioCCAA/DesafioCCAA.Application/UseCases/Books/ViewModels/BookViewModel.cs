@@ -1,5 +1,6 @@
 ﻿using DesafioCCAA.Application.UseCases.Genders.ViewModels;
 using DesafioCCAA.Application.UseCases.Publishers.ViewModels;
+using DesafioCCAA.Application.UseCases.Users.ViewModels;
 using DesafioCCAA.Domain.Domains.Books;
 using DesafioCCAA.Shared.ViewModels;
 

@@ -46,17 +46,17 @@ public class DeletesBookCommandHandler(
                     user
                     );
 
-                await unitOfWork.RepositoryFactory
+                unitOfWork.RepositoryFactory
                     .BookRepository
-                     .RemoveAsync(id);
-
-                await unitOfWork.CommitAsync();
+                    .RemoveAsync(entity);
 
                 foreach (var domainEvent in entity.Events)
                 {
                     await mediator.Publish(domainEvent, cancellationToken);
                 }
             }
+
+            await unitOfWork.CommitAsync();
 
             return new BaseResult(true, "Book(s) deleted successfully");
         }

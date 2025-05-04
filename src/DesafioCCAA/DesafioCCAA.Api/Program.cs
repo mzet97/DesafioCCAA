@@ -2,11 +2,13 @@ using DesafioCCAA.Api.Configuration;
 using DesafioCCAA.Api.Endpoints;
 using DesafioCCAA.Infrastructure.Configuration;
 using DesafioCCAA.Infrastructure.Middlewares;
+using QuestPDF.Infrastructure;
 using Serilog;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    QuestPDF.Settings.License = LicenseType.Community;
 
     builder.Configuration
         .SetBasePath(builder.Environment.ContentRootPath)

@@ -1,4 +1,3 @@
-# Workflow do GitHub Actions: Compilar e publicar imagem Docker para aplicação .NET 9
 name: Docker Publish
 
 on:
@@ -7,49 +6,34 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # Etapa 1: Checkout do código
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      # Etapa 2: Instalar .NET SDK 9.0
-      - name: Instalar .NET SDK 9.0
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      # Etapa 3-5: Restaurar dependências, compilar e publicar a solução .NET
-      - name: Restaurar dependências
-        run: dotnet restore src/DesafioCCAA/DesafioCCAA.sln
-
-      - name: Compilar solução
-        run: dotnet build src/DesafioCCAA/DesafioCCAA.sln --configuration Release --no-restore
-
-      - name: Publicar solução
-        run: dotnet publish src/DesafioCCAA/DesafioCCAA.sln --configuration Release --no-build
-
-      # Etapa 5: Login no GitHub Container Registry (GHCR)
       - name: Login no GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Etapa 6-7: Build da imagem Docker e marcar com tags
-      - name: Construir imagem Docker
-        run: |
-          docker build \
-            -f src/DesafioCCAA/DesafioCCAA.Api/Dockerfile \
-            -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest \
-            -t ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }} \
-            src/DesafioCCAA
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/desafioccaa-api
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      # Etapa 8: Push das imagens para o GHCR
-      - name: Publicar imagens no GHCR
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:latest
-          docker push ghcr.io/${{ github.repository_owner }}/desafioccaa-api:${{ github.sha }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: src/DesafioCCAA
+          file: src/DesafioCCAA/DesafioCCAA.Api/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

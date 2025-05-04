@@ -1,7 +1,5 @@
 ﻿using DesafioCCAA.Domain.Domains.Books.Entities.Validations;
-using DesafioCCAA.Domain.Domains.Books.Events.Books;
 using DesafioCCAA.Domain.Domains.Books.Events.Genders;
-using DesafioCCAA.Domain.Domains.Identities;
 using DesafioCCAA.Shared.Models;
 
 namespace DesafioCCAA.Domain.Domains.Books.Entities;

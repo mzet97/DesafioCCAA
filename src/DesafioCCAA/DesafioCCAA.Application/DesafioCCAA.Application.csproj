@@ -14,7 +14,8 @@
 
   <ItemGroup>
     <Folder Include="UseCases\Books\Notifications\" />
-    <Folder Include="UseCases\Books\Queries\Handlers\" />
+    <Folder Include="UseCases\Users\Commands\Handlers\" />
+    <Folder Include="UseCases\Users\Queries\Handlers\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +28,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="9.0.4" />
+    <PackageReference Include="QuestPDF" Version="2025.4.2" />
   </ItemGroup>
 
 </Project>

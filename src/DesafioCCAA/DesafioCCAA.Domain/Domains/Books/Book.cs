@@ -14,7 +14,7 @@ public class Book : AggregateRoot<Book>
     public string Synopsis { get; private set; }
     public string ISBN { get; private set; }
 
-    public CoverImage CoverImage { get; private set; }
+    public CoverImage? CoverImage { get; private set; }
 
     public Guid GenderId { get; private set; }
     public Gender Gender { get; set; } = null!;
@@ -145,9 +145,14 @@ public class Book : AggregateRoot<Book>
     {
         UserUpdatedId = userDeletedId;
         UserUpdated = userDeleted;
+        ClearCoverImage();
         Validate();
-        AddEvent(
-            new BookDeleted(this));
+        AddEvent(new BookDeleted(this));
+    }
+
+    private void ClearCoverImage()
+    {
+        CoverImage = null;
     }
 
     public override void Disabled()

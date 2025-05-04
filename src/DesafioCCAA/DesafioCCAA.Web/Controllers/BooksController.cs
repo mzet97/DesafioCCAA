@@ -7,7 +7,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
 using System.Security.Claims;
 
 namespace DesafioCCAA.Web.Controllers;
@@ -274,6 +273,22 @@ public class BooksController(
 
             return View();
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Report()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var resultPdf = await mediator.Send(new GenerateBookReportQuery(userId));
+
+        if(resultPdf is null || resultPdf.Data is null)
+        {
+            ModelState.AddModelError(string.Empty, resultPdf?.Message ?? "Erro ao gerar PDF");
+            return View();
+        }
+
+        return File(resultPdf.Data, "application/pdf",
+                    $"books-{DateTime.Now:yyyyMMdd-HHmmss}.pdf");
     }
 
     private async Task PopulateCreateViewBags()

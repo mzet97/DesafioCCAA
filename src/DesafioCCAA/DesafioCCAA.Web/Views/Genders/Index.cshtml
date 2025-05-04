@@ -85,8 +85,7 @@
                         data: null,
                         orderable: false,
                         render: function (data, type, row) {
-                            return '<a href="@Url.Action("Edit", "Genders")/' + row.id + '" class="btn btn-sm btn-primary me-1">✏️</a>' +
-                                   '<a href="@Url.Action("Delete", "Genders")/' + row.id + '" class="btn btn-sm btn-danger">🗑️</a>';
+                            return '<a href="@Url.Action("Edit", "Genders")/' + row.id + '" class="btn btn-sm btn-primary me-1">✏️</a>';
                         }
                     }
                 ],

@@ -77,6 +77,14 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
         if (id == Guid.Empty) 
             throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
+        return await DbSet.FindAsync(id);
+    }
+
+    public virtual async Task<TEntity?> GetByIdNoTrackingAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+            throw new ArgumentException("ID não pode ser vazio", nameof(id));
+
         return await DbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
     }
 
@@ -91,9 +99,22 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
         return Task.CompletedTask;
     }
 
-    public virtual async Task RemoveAsync(Guid id)
+    public virtual void RemoveAsync(TEntity entity)
     {
-        if (id == Guid.Empty) 
+        if (entity is null)
+            throw new ArgumentNullException(nameof(entity));
+
+        //if (Db.Entry(entity).State == EntityState.Detached)
+        //{
+        //    DbSet.Attach(entity);
+        //}
+
+        DbSet.Remove(entity);
+    }
+
+    public virtual async Task RemoveByIdAsync(Guid id)
+    {
+        if (id == Guid.Empty)
             throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         var entity = await DbSet.FindAsync(id);
@@ -107,7 +128,6 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
             throw new InvalidOperationException("Entidade não encontrada para exclusão.");
         }
     }
-
 
     public virtual async Task DisableAsync(Guid id)
     {

@@ -33,7 +33,7 @@ public class DeletesGenderCommandHandler(IUnitOfWork unitOfWork,
 
                 await unitOfWork.RepositoryFactory
                     .GenderRepository
-                     .RemoveAsync(id);
+                     .RemoveByIdAsync(id);
 
                 await unitOfWork.CommitAsync();
 

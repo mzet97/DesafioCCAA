@@ -7,7 +7,7 @@ namespace DesafioCCAA.Domain.Repositories.Interfaces;
 public interface IRepository<TEntity> : IDisposable where TEntity : IEntity
 {
     Task AddAsync(TEntity entity);
-
+    Task<TEntity?> GetByIdNoTrackingAsync(Guid id);
     Task<TEntity?> GetByIdAsync(Guid id);
 
     Task<IEnumerable<TEntity>> GetAllAsync();
@@ -16,7 +16,8 @@ public interface IRepository<TEntity> : IDisposable where TEntity : IEntity
 
     Task UpdateAsync(TEntity entity);
 
-    Task RemoveAsync(Guid id);
+    void RemoveAsync(TEntity entity);
+    Task RemoveByIdAsync(Guid id);
     Task DisableAsync(Guid id);
     Task ActiveAsync(Guid id);
     Task ActiveOrDisableAsync(Guid id, bool active);

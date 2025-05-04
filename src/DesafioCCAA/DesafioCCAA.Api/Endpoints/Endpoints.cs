@@ -51,7 +51,9 @@ public static class Endpoints
             .MapEndpoint<DisablesBookEndpoint>()
             .MapEndpoint<UploadImageEndpoint>()
             .MapEndpoint<GetFileBase64Endpoint>()
-            .MapEndpoint<DownloadFileEndpoint>();
+            .MapEndpoint<DownloadFileEndpoint>()
+            .MapEndpoint<GetByIdUserCreatedBookEndpoint>()
+            .MapEndpoint<GenerateBookReportEndpoint>();
 
         endpoints.MapGroup("Publishers")
             .WithTags("Publishers")

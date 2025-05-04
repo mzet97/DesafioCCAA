@@ -9,7 +9,10 @@
         <button id="activateBtn" class="btn btn-success btn-sm me-2" disabled>Ativar</button>
         <button id="deactivateBtn" class="btn btn-warning btn-sm me-2" disabled>Desativar</button>
         <button id="deleteBtn" class="btn btn-danger btn-sm me-2" disabled>Excluir</button>
-        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle"></i> Cadastrar</a>
+        <a asp-action="Report" class="btn btn-outline-primary btn-sm me-2">
+            <i class="bi bi-file-earmark-pdf"></i> Gerar PDF
+        </a>
+        <a class="btn btn-primary btn-sm me-2" asp-action="Create"><i class="bi bi-plus-circle"></i> Cadastrar</a>
     </div>
     <div class="ms-auto d-flex align-items-center mb-2">
         <label for="pageSizeSelect" class="me-2 mb-0">Itens por página:</label>
@@ -96,8 +99,7 @@
                         data: null,
                         orderable: false,
                         render: function (data, type, row) {
-                            return '<a href="@Url.Action("Edit", "Books")/' + row.id + '" class="btn btn-sm btn-primary me-1">✏️</a>' +
-                                '<a href="@Url.Action("Delete", "Books")/' + row.id + '" class="btn btn-sm btn-danger">🗑️</a>';
+                            return '<a href="@Url.Action("Edit", "Books")/' + row.id + '" class="btn btn-sm btn-primary me-1">✏️</a>';
                         }
                     }
                 ],

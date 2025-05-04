@@ -1,6 +1,6 @@
 ﻿using DesafioCCAA.Domain.Domains.Identities;
 
-namespace DesafioCCAA.Application.UseCases.Books.ViewModels;
+namespace DesafioCCAA.Application.UseCases.Users.ViewModels;
 
 public class ApplicationUserViewModel
 {
