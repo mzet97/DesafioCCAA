@@ -26,13 +26,23 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/desafioccaa-api
           tags: |
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha # Gera tag com o SHA curto do commit (ex: sha-7a0d777)
+            type=raw,value=latest,enable={{is_default_branch}} # Gera tag 'latest' apenas para a branch padrão (main)
+
+      - name: Verify Dockerfile Path
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Checking for Dockerfile at relative path: ./src/DesafioCCAA/DesafioCCAA.Api/Dockerfile"
+          ls -l ./src/DesafioCCAA/DesafioCCAA.Api/Dockerfile || echo "Relative path not found!"
+          echo "Checking for Dockerfile at absolute path: $GITHUB_WORKSPACE/src/DesafioCCAA/DesafioCCAA.Api/Dockerfile"
+          ls -l "$GITHUB_WORKSPACE/src/DesafioCCAA/DesafioCCAA.Api/Dockerfile" || echo "Absolute path not found!"
+        continue-on-error: true
 
       - name: Build and push Docker image
+        id: build-push
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: . 
           file: ./src/DesafioCCAA/DesafioCCAA.Api/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
