@@ -38,6 +38,21 @@ jobs:
           ls -l "$GITHUB_WORKSPACE/src/DesafioCCAA/DesafioCCAA.Api/Dockerfile" || echo "Absolute path not found!"
         continue-on-error: true
 
+      - name: Verify Directory Structure
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "--- Listing root directory ---"
+          ls -la ./
+          echo "--- Listing src directory ---"
+          ls -la ./src/ || echo "./src/ not found!"
+          echo "--- Listing src/DesafioCCAA directory ---"
+          ls -la ./src/DesafioCCAA/ || echo "./src/DesafioCCAA/ not found!"
+          echo "--- Listing src/DesafioCCAA/DesafioCCAA.Api directory ---"
+          ls -la ./src/DesafioCCAA/DesafioCCAA.Api/ || echo "./src/DesafioCCAA/DesafioCCAA.Api/ not found!"
+          echo "--- Searching for Dockerfile ---"
+          find . -name Dockerfile -print || echo "Dockerfile not found by find"
+        continue-on-error: true # Continua mesmo se um ls falhar
+
       - name: Build and push Docker image
         id: build-push
         uses: docker/build-push-action@v5
