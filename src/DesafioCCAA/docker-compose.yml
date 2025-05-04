@@ -1,0 +1,223 @@
+services:
+
+  redis:
+    image: "redis:alpine"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - /dados/redis:/data
+      - /dados/redis/logs:/logs
+    networks:
+      - desafio-network
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "1GB"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  setup:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.1
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    container_name: setup
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    networks:
+      - desafio-network
+    command:
+      - bash
+      - -c
+      - |
+        echo "Waiting for Elasticsearch availability";
+        until curl -s http://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "Setting kibana_system password";
+        until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" http://elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "All done!";
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.1
+    container_name: elasticsearch
+    volumes:
+      - /dados/elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - desafio-network
+    ports:
+      - 9200:9200
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - discovery.type=single-node
+      - cluster.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.http.ssl.enabled=false
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.1
+    container_name: kibana
+    ports:
+      - 5601:5601
+    networks:
+      - desafio-network
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - TELEMETRY_ENABLED=false
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY}
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.1
+    container_name: logstash
+    command:
+      - /bin/bash
+      - -c
+      - |
+        echo "Waiting for Elasticsearch availability";
+        until curl -s http://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 1; done;
+        echo "Starting logstash";
+        /usr/share/logstash/bin/logstash -f /usr/share/logstash/pipeline/logstash.conf
+    networks:
+      - desafio-network
+    ports:
+      - 5044:5044
+      - 5045:5045
+      - 5046:5046
+    environment:
+      - xpack.monitoring.enabled=false
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_HOSTS=http://elasticsearch:9200
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - /dados/logstash/logs:/usr/share/logstash/logs
+      - /dados/logstash/data:/usr/share/logstash/data
+    depends_on:
+      - elasticsearch
+
+  sqlserver:
+    image: "mcr.microsoft.com/mssql/server:2019-latest"
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    volumes:
+      - /dados/sqlserver/data:/var/opt/mssql/data
+      - /dados/sqlserver/log:/var/opt/mssql/log
+    networks:
+      - desafio-network
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - MSSQL_PID=Developer
+      # - MSSQL_TCP_PORT=1433 # opcional, padrão já é 1433
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${MSSQL_SA_PASSWORD} -Q 'SELECT 1' || exit 1"
+      ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - /dados/rabbitmq:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    networks:
+      - desafio-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    restart: unless-stopped
+    networks:
+      - desafio-network
+    ports:
+      - "1025:1025"   # SMTP (envio)
+      - "8025:8025"   # Web UI (visualização)
+
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: DesafioCCAA.Api/Dockerfile
+  #     args:
+  #       BUILD_CONFIGURATION: Release
+  #   container_name: desafio-api
+  #   ports:
+  #     - "8080:8080"
+  #     - "8081:8081"
+  #   networks:
+  #     - desafio-network
+  #   depends_on:
+  #     - sqlserver
+  #     - redis
+  #     - elasticsearch
+  #   restart: unless-stopped
+  #   environment:
+  #     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: false
+  #     LC_ALL: en_US.UTF-8
+  #     LANG: en_US.UTF-8
+  #     ConnectionStrings__DefaultConnection: "${ConnectionStrings__DefaultConnection}"
+  #     AppSettings__Secret: "${AppSettings__Secret}"
+  #     AppSettings__ExpirationHours: "${AppSettings__ExpirationHours}"
+  #     AppSettings__Issuer: "${AppSettings__Issuer}"
+  #     AppSettings__ValidOn: "${AppSettings__ValidOn}"
+  #     Redis__ConnectionString: "${Redis__ConnectionString}"
+  #     Redis__InstanceName: "${Redis__InstanceName}"
+  #     ElasticSettings__Uri: "${ElasticSettings__Uri}"
+  #     ElasticSettings__Username: "${ElasticSettings__Username}"
+  #     ElasticSettings__Password: "${ELASTIC_PASSWORD}"
+  #     ElasticSettings__DataSet: "${ElasticSettings__DataSet}"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: "2"
+  #         memory: "2GB"
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+
+networks:
+  desafio-network:
+    external: true

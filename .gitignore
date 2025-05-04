@@ -20,10 +20,6 @@ publish/
 # Logs
 *.log
 
-# Docker
-**/Dockerfile*
-**/docker-compose*
-
 # OS generated files
 .DS_Store
 Thumbs.db
