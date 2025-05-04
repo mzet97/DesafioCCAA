@@ -13,4 +13,15 @@ public class ClaimViewModel
         Value = claim.Value;
         Type = claim.Type;
     }
+
+    public ClaimViewModel(string value, string type)
+    {
+        Value = value;
+        Type = type;
+    }
+
+    public ClaimViewModel()
+    {
+        
+    }
 }

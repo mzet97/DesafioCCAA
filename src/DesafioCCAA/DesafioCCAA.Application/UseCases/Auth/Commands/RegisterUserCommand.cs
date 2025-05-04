@@ -8,20 +8,29 @@ namespace DesafioCCAA.Application.UseCases.Auth.Commands;
 
 public class RegisterUserCommand : IRequest<BaseResult<LoginResponseViewModel>>
 {
+
     [Required(ErrorMessage = "O campo {0} é requerido")]
     [EmailAddress(ErrorMessage = "O campo {0} é inválido")]
-    public required string Email { get; set; }
+    public string Email { get; set; }
 
     [Required(ErrorMessage = "O campo {0} é requerido")]
     [StringLength(255, ErrorMessage = "O campo  {0} deve está entre {2} e {1} caracteres", MinimumLength = 3)]
-    public required string Name { get; set; }
+    public string Name { get; set; }
 
     [Required(ErrorMessage = "O campo {0} é requeridod")]
     [StringLength(255, ErrorMessage = "O campo  {0} deve está entre {2} e {1} caracteres", MinimumLength = 6)]
-    public required string Password { get; set; }
+    public string Password { get; set; }
 
     [Required(ErrorMessage = "O campo {0} é requerido")]
-    public required DateTime BirthDate { get; set; }
+    public DateTime BirthDate { get; set; }
+
+    public RegisterUserCommand(string email, string name, string password, DateTime birthDate)
+    {
+        Email = email;
+        Name = name;
+        Password = password;
+        BirthDate = birthDate;
+    }
 
     public ApplicationUser ToDomain()
     {

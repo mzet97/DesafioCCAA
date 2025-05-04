@@ -31,7 +31,7 @@ public static class Endpoints
                 return Results.Ok(new { Message = "Este é um exemplo de cache", Timestamp = DateTime.UtcNow });
             }).CacheOutput("DefaultPolicy");
 
-        endpoints.MapGroup("Auth")
+        endpoints.MapGroup("api/auth")
            .WithTags("Auth")
            .MapEndpoint<RegisterUserEndpoint>()
            .MapEndpoint<LoginUserEndpoint>()
@@ -39,7 +39,7 @@ public static class Endpoints
            .MapEndpoint<ForgotPasswordEndpoint>()
            .MapEndpoint<ResetPasswordEndpoint>();
 
-        endpoints.MapGroup("Books")
+        endpoints.MapGroup("api/books")
             .WithTags("Books")
             .RequireAuthorization()
             .MapEndpoint<CreateBookEndpoint>()
@@ -55,7 +55,7 @@ public static class Endpoints
             .MapEndpoint<GetByIdUserCreatedBookEndpoint>()
             .MapEndpoint<GenerateBookReportEndpoint>();
 
-        endpoints.MapGroup("Publishers")
+        endpoints.MapGroup("api/publishers")
             .WithTags("Publishers")
             .RequireAuthorization()
             .MapEndpoint<CreatePublisherEndpoint>()
@@ -66,7 +66,7 @@ public static class Endpoints
             .MapEndpoint<AtivesPublisherEndpoint>()
             .MapEndpoint<DisablesPublisherEndpoint>();
 
-        endpoints.MapGroup("Genders")
+        endpoints.MapGroup("api/genders")
             .WithTags("Genders")
             .RequireAuthorization()
             .MapEndpoint<CreateGenderEndpoint>()
