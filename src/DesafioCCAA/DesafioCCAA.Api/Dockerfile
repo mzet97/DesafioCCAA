@@ -10,8 +10,7 @@ WORKDIR /src
 COPY ["src/DesafioCCAA/DesafioCCAA.sln", "."]
 COPY ["src/DesafioCCAA/DesafioCCAA.Api/DesafioCCAA.Api.csproj", "DesafioCCAA.Api/"]
 COPY ["src/DesafioCCAA/DesafioCCAA.Domain/DesafioCCAA.Domain.csproj", "DesafioCCAA.Domain/"]
-COPY ["src/DesafioCCAA/DesafioCCAA.Infra/DesafioCCAA.Infra.csproj", "DesafioCCAA.Infra/"]
-
+COPY ["src/DesafioCCAA/DesafioCCAA.Infrastructure/DesafioCCAA.Infrastructure.csproj", "DesafioCCAA.Infrastructure/"]
 RUN dotnet restore "DesafioCCAA.sln"
 
 COPY ["src/DesafioCCAA/", "."]
