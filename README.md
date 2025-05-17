@@ -1,4 +1,4 @@
-# Desafio CCAA
+# Sistema Livro
 
 ## Visão Geral do Projeto
 Este projeto é um sistema de catálogo de livros na web, desenvolvido com uma arquitetura em camadas. O objetivo principal é permitir que os usuários criem contas, cadastrem e gerenciem livros, além de emitir relatórios em PDF.
@@ -29,8 +29,8 @@ Certifique-se de ter as seguintes ferramentas instaladas no seu ambiente:
 ### 1. Clone o Repositório
 Abra o terminal e execute o seguinte comando para clonar o repositório:
 ```bash
-git clone https://github.com/mzet97/DesafioCCAA.git
-cd DesafioCCAA
+git clone https://github.com/mzet97/SistemaLivro.git
+cd SistemaLivro
 ```
 
 -----
@@ -58,7 +58,7 @@ Isso iniciará os containers necessários, incluindo o banco de dados e outros s
 
 1.  Navegue até a pasta da API:
     ```bash
-    cd src/DesafioCCAA/DesafioCCAA.Api
+    cd src/SistemaLivro/SistemaLivro.Api
     ```
 2.  Restaure os pacotes do projeto:
     ```bash 
@@ -79,7 +79,7 @@ Isso iniciará os containers necessários, incluindo o banco de dados e outros s
 
 1.  Navegue até a pasta do front-end MVC:
     ```bash
-    cd src/DesafioCCAA/DesafioCCAA.Web
+    cd src/SistemaLivro/SistemaLivro.Web
     ```
 2.   Restaure os pacotes do projeto:
     ```bash
@@ -125,7 +125,7 @@ Isso iniciará os containers necessários, incluindo o banco de dados e outros s
 
 1.  Navegue até a pasta de testes:
     ```bash
-    cd tests/DesafioCCAA.Tests
+    cd tests/SistemaLivro.Tests
     ```
 2.  Execute os testes com o comando:
     ```bash

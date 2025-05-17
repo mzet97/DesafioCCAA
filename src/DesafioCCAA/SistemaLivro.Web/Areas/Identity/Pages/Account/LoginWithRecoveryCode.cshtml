@@ -1,0 +1,31 @@
+﻿@page
+@using SistemaLivro.Web.Areas.Identity.Pages.Account
+@model LoginWithRecoveryCodeModel
+@{
+    ViewData["Title"] = "Verificação de código de recuperação";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<p>
+    Você solicitou entrar com um código de recuperação. Este login não será lembrado até que você forneça um código do
+    aplicativo autenticador ao entrar ou desative o 2FA e entre novamente.
+</p>
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.RecoveryCode" class="form-control" autocomplete="off"
+                    placeholder="Código de recuperação" />
+                <label asp-for="Input.RecoveryCode" class="form-label"></label>
+                <span asp-validation-for="Input.RecoveryCode" class="text-danger"></span>
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Entrar</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

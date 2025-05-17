@@ -27,7 +27,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/desafioccaa-api
+          images: ghcr.io/${{ github.repository_owner }}/SistemaLivro-api
           tags: |
             type=sha # Gera tag com o SHA curto do commit (ex: sha-7a0d777)
             type=raw,value=latest,enable={{is_default_branch}} # Gera tag 'latest' apenas para a branch padrão (main)
@@ -35,10 +35,10 @@ jobs:
       - name: Verify Dockerfile Path
         run: |
           echo "Current directory: $(pwd)"
-          echo "Checking for Dockerfile at relative path: ./src/DesafioCCAA/DesafioCCAA.Api/Dockerfile"
-          ls -l ./src/DesafioCCAA/DesafioCCAA.Api/Dockerfile || echo "Relative path not found!"
-          echo "Checking for Dockerfile at absolute path: $GITHUB_WORKSPACE/src/DesafioCCAA/DesafioCCAA.Api/Dockerfile"
-          ls -l "$GITHUB_WORKSPACE/src/DesafioCCAA/DesafioCCAA.Api/Dockerfile" || echo "Absolute path not found!"
+          echo "Checking for Dockerfile at relative path: ./src/SistemaLivro/SistemaLivro.Api/Dockerfile"
+          ls -l ./src/SistemaLivro/SistemaLivro.Api/Dockerfile || echo "Relative path not found!"
+          echo "Checking for Dockerfile at absolute path: $GITHUB_WORKSPACE/src/SistemaLivro/SistemaLivro.Api/Dockerfile"
+          ls -l "$GITHUB_WORKSPACE/src/SistemaLivro/SistemaLivro.Api/Dockerfile" || echo "Absolute path not found!"
         continue-on-error: true
 
       - name: Verify Directory Structure
@@ -48,10 +48,10 @@ jobs:
           ls -la ./
           echo "--- Listing src directory ---"
           ls -la ./src/ || echo "./src/ not found!"
-          echo "--- Listing src/DesafioCCAA directory ---"
-          ls -la ./src/DesafioCCAA/ || echo "./src/DesafioCCAA/ not found!"
-          echo "--- Listing src/DesafioCCAA/DesafioCCAA.Api directory ---"
-          ls -la ./src/DesafioCCAA/DesafioCCAA.Api/ || echo "./src/DesafioCCAA/DesafioCCAA.Api/ not found!"
+          echo "--- Listing src/SistemaLivro directory ---"
+          ls -la ./src/SistemaLivro/ || echo "./src/SistemaLivro/ not found!"
+          echo "--- Listing src/SistemaLivro/SistemaLivro.Api directory ---"
+          ls -la ./src/SistemaLivro/SistemaLivro.Api/ || echo "./src/SistemaLivro/SistemaLivro.Api/ not found!"
           echo "--- Searching for Dockerfile ---"
           find . -name Dockerfile -print || echo "Dockerfile not found by find"
         continue-on-error: true # Continua mesmo se um ls falhar
@@ -61,7 +61,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: . 
-          file: ./src/DesafioCCAA/DesafioCCAA.Api/Dockerfile
+          file: ./src/SistemaLivro/SistemaLivro.Api/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
