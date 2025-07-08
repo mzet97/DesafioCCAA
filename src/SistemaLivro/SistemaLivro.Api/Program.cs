@@ -42,6 +42,7 @@ try
 
     app.UseRouting();
     app.UseAppConfig();
+    app.UseOutputCache();
     app.MapControllers();
     app.MapEndpoints();
 
