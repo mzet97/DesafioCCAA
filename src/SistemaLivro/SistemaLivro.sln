@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaLivro.E2E", "Sistema
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaLivro.Application.Test", "SistemaLivro.Application.Test\SistemaLivro.Application.Test.csproj", "{1AF06A8A-4215-4D17-BFED-D3D92B1F3859}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaLivro.App", "SistemaLivro.App\SistemaLivro.App.csproj", "{641DE11C-5D08-96F0-DBD2-20BE2316307D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{1AF06A8A-4215-4D17-BFED-D3D92B1F3859}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AF06A8A-4215-4D17-BFED-D3D92B1F3859}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AF06A8A-4215-4D17-BFED-D3D92B1F3859}.Release|Any CPU.Build.0 = Release|Any CPU
+		{641DE11C-5D08-96F0-DBD2-20BE2316307D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{641DE11C-5D08-96F0-DBD2-20BE2316307D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{641DE11C-5D08-96F0-DBD2-20BE2316307D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{641DE11C-5D08-96F0-DBD2-20BE2316307D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

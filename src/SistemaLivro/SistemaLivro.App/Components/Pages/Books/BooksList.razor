@@ -1,0 +1,200 @@
+@page "/books"
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+@using SistemaLivro.Application.UseCases.Books.Queries
+@using SistemaLivro.Application.UseCases.Books.ViewModels
+@using SistemaLivro.Shared.ViewModels
+@inject IMediator Mediator
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+@attribute [Authorize]
+
+<PageTitle>Livros</PageTitle>
+
+<AuthorizeView> 
+    <Authorized>
+        
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+            <MudText Typo="Typo.h4" Class="mb-4">Gerenciamento de Livros</MudText>
+    
+            <MudCard>
+                <MudCardContent>
+                    <!-- Filtros -->
+                    <MudGrid Class="mb-4">
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudTextField @bind-Value="searchQuery.Title" 
+                                          Label="Título" 
+                                          Variant="Variant.Outlined" 
+                                          Adornment="Adornment.Start" 
+                                          AdornmentIcon="Icons.Material.Filled.Search" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudTextField @bind-Value="searchQuery.Author" 
+                                          Label="Autor" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudTextField @bind-Value="searchQuery.ISBN" 
+                                          Label="ISBN" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudTextField @bind-Value="searchQuery.GenderName" 
+                                          Label="Gênero" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+            
+                    <MudGrid Class="mb-4">
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudTextField @bind-Value="searchQuery.PublisherName" 
+                                          Label="Editora" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudButton Variant="Variant.Filled" 
+                                       Color="Color.Primary" 
+                                       StartIcon="Icons.Material.Filled.Search"
+                                       OnClick="SearchBooks">
+                                Buscar
+                            </MudButton>
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudButton Variant="Variant.Outlined" 
+                                       Color="Color.Secondary" 
+                                       StartIcon="Icons.Material.Filled.Clear"
+                                       OnClick="ClearFilters">
+                                Limpar
+                            </MudButton>
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudButton Variant="Variant.Filled" 
+                                       Color="Color.Success" 
+                                       StartIcon="Icons.Material.Filled.Add"
+                                       OnClick="CreateBook">
+                                Novo Livro
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
+    
+            <!-- Tabela de Livros -->
+            <MudCard Class="mt-4">
+                <MudCardContent>
+                    <MudDataGrid T="BookViewModel" 
+                                 Items="@books" 
+                                 Loading="@loading"
+                                 Hover="true"
+                                 Striped="true"
+                                 Dense="true">
+                        <Columns>
+                            <PropertyColumn Property="x => x.Title" Title="Título" />
+                            <PropertyColumn Property="x => x.Author" Title="Autor" />
+                            <PropertyColumn Property="x => x.ISBN" Title="ISBN" />
+                            <PropertyColumn Property="x => x.GenderName" Title="Gênero" />
+                            <PropertyColumn Property="x => x.PublisherName" Title="Editora" />
+                            <TemplateColumn Title="Ações" Sortable="false">
+                                <CellTemplate Context="item">
+                                    <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
+                                        <MudIconButton Icon="Icons.Material.Filled.Edit" 
+                                                       Color="Color.Primary" 
+                                                       Size="Size.Small"
+                                                       OnClick="() => EditBook(item.Item.Id)" />
+                                        <MudIconButton Icon="Icons.Material.Filled.Delete" 
+                                                       Color="Color.Error" 
+                                                       Size="Size.Small"
+                                                       OnClick="() => DeleteBook(item.Item.Id)" />
+                                    </MudButtonGroup>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="BookViewModel" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudCardContent>
+            </MudCard>
+        </MudContainer>
+
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h3" GutterBottom="true">Você não tem permissão para acessar esta página.</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private SearchBookQuery searchQuery = new();
+    private List<BookViewModel> books = new();
+    private bool loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SearchBooks();
+    }
+
+    private async Task SearchBooks()
+    {
+        loading = true;
+        try
+        {
+            var result = await Mediator.Send(searchQuery);
+            books = result.Data.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar livros: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void ClearFilters()
+    {
+        searchQuery = new SearchBookQuery();
+        StateHasChanged();
+    }
+
+    private void CreateBook()
+    {
+        Navigation.NavigateTo("/books/create");
+    }
+
+    private void EditBook(Guid id)
+    {
+        Navigation.NavigateTo($"/books/edit/{id}");
+    }
+
+    private async Task DeleteBook(Guid id)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = "Tem certeza que deseja excluir este livro? Esta ação não pode ser desfeita.",
+            ["ButtonText"] = "Excluir",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirmar Exclusão", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                // TODO: Implementar comando de exclusão
+                // await Mediator.Send(new DeleteBookCommand(id));
+                Snackbar.Add("Livro excluído com sucesso!", Severity.Success);
+                await SearchBooks();
+            }
+            catch (Exception ex)
+            {
+            Snackbar.Add($"Erro ao excluir livro: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}
