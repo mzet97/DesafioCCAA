@@ -18,4 +18,14 @@ public class CreatePublisherCommand : IRequest<BaseResult<Guid>>
     [MinLength(2)]
     [MaxLength(4000)]
     public string Description { get; set; } = string.Empty;
+
+    public CreatePublisherCommand(string name, string description)
+    {
+        Name = name;
+        Description = description;
+    }
+
+    public CreatePublisherCommand()
+    {
+    }
 }

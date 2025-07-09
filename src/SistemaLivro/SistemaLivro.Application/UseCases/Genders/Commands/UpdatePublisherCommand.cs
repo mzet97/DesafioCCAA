@@ -20,4 +20,13 @@ public class UpdateGenderCommand : IRequest<BaseResult<Guid>>
     [MinLength(2)]
     [MaxLength(4000)]
     public string Description { get; set; } = string.Empty;
+
+    public UpdateGenderCommand() { }
+
+    public UpdateGenderCommand(Guid id, string name, string description)
+    {
+        Id = id;
+        Name = name;
+        Description = description;
+    }
 }

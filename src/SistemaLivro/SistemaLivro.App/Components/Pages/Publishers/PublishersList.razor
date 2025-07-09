@@ -3,8 +3,10 @@
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 @using SistemaLivro.Application.UseCases.Publishers.Queries
+@using SistemaLivro.Application.UseCases.Publishers.Commands
 @using SistemaLivro.Application.UseCases.Publishers.ViewModels
-@using SistemaLivro.Shared.ViewModels
+@using SistemaLivro.App.Components.Shared
+@using System.ComponentModel.DataAnnotations
 @inject IMediator Mediator
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -16,141 +18,278 @@
 
 <AuthorizeView> 
     <Authorized>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-            <MudText Typo="Typo.h4" Class="mb-4">Gerenciamento de Editoras</MudText>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+            <div class="d-flex align-center justify-space-between mb-4">
+                <div class="d-flex align-center">
+                    <MudIcon Icon="Icons.Material.Filled.Business" Class="mr-3" Style="font-size: 2rem;" />
+                    <MudText Typo="Typo.h4">Gerenciamento de Editoras</MudText>
+                </div>
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           StartIcon="Icons.Material.Filled.Add"
+                           OnClick="@(() => Navigation.NavigateTo("/publishers/new"))">
+                    Nova Editora
+                </MudButton>
+            </div>
     
             <MudCard>
                 <MudCardContent>
-                    <!-- Filtros -->
-                    <MudGrid Class="mb-4">
-                        <MudItem xs="12" sm="6" md="4">
-                            <MudTextField @bind-Value="searchQuery.Name" 
-                                          Label="Nome" 
-                                          Variant="Variant.Outlined" 
-                                          Adornment="Adornment.Start" 
-                                          AdornmentIcon="Icons.Material.Filled.Search" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="2">
-                            <MudButton Variant="Variant.Filled" 
-                                       Color="Color.Primary" 
-                                       StartIcon="Icons.Material.Filled.Search"
-                                       OnClick="SearchPublishers">
-                                Buscar
-                            </MudButton>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="2">
-                            <MudButton Variant="Variant.Outlined" 
-                                       Color="Color.Secondary" 
-                                       StartIcon="Icons.Material.Filled.Clear"
-                                       OnClick="ClearFilters">
-                                Limpar
-                            </MudButton>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="2">
-                            <MudButton Variant="Variant.Filled" 
-                                       Color="Color.Success" 
-                                       StartIcon="Icons.Material.Filled.Add"
-                                       OnClick="CreatePublisher">
-                                Nova Editora
-                            </MudButton>
-                        </MudItem>
-                    </MudGrid>
-                </MudCardContent>
-            </MudCard>
-    
-            <!-- Tabela de Editoras -->
-            <MudCard Class="mt-4">
-                <MudCardContent>
-                    <MudDataGrid T="PublisherViewModel" 
-                                 Items="@publishers" 
-                                 Loading="@loading"
+                    <MudDataGrid @ref="_dataGrid"
+                                 T="PublisherViewModel"
+                                 ServerData="LoadGridData"
+                                 Loading="@_loading"
                                  Hover="true"
                                  Striped="true"
-                                 Dense="true">
+                                 Dense="true"
+                                 MultiSelection="true"
+                                 SelectOnRowClick="false"
+                                 SelectedItems="_selectedItems"
+                                 SelectedItemsChanged="OnSelectedItemsChanged"
+                                 Filterable="true"
+                                 FilterMode="DataGridFilterMode.Simple"
+                                 SortMode="SortMode.Multiple"
+                                 Pageable="true"
+                                 RowsPerPage="25"
+                                 RowsPerPageOptions="new int[] { 10, 25, 50, 100 }"
+                                 ShowMenuIcon="true"
+                                 ShowFilterIcons="true">
+                        
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Editoras</MudText>
+                            <MudSpacer />
+                            
+                            <!-- Campo de pesquisa global -->
+                            <MudTextField @bind-Value="_globalSearchString"
+                                          @onkeyup="OnGlobalSearch"
+                                          Placeholder="Pesquisar..."
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="Icons.Material.Filled.Search"
+                                          IconSize="Size.Medium"
+                                          Clearable="true"
+                                          DebounceInterval="500"
+                                          Class="mt-0" />
+                        </ToolBarContent>
+                        
                         <Columns>
-                            <PropertyColumn Property="x => x.Name" Title="Nome" />
-                            <PropertyColumn Property="x => x.Description" Title="Descrição" />
-                            <PropertyColumn Property="x => x.CreatedAt" Title="Criado em" Format="dd/MM/yyyy HH:mm" />
-                            <TemplateColumn Title="Ações" Sortable="false">
-                                <CellTemplate Context="item">
+                            <SelectColumn T="PublisherViewModel" />
+                            
+                            <PropertyColumn Property="x => x.Name" 
+                                            Title="Nome"
+                                            Filterable="true"
+                                            Sortable="true">
+                                <FilterTemplate Context="filterContext">
+                                    <MudTextField @bind-Value="filterContext.FilterDefinition.Value"
+                                                  Placeholder="Filtrar por nome..."
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense"
+                                                  Clearable="true" />
+                                </FilterTemplate>
+                            </PropertyColumn>
+                            
+                            <PropertyColumn Property="x => x.Description" 
+                                            Title="Descrição"
+                                            Filterable="true"
+                                            Sortable="true">
+                                <FilterTemplate Context="filterContext">
+                                    <MudTextField @bind-Value="filterContext.FilterDefinition.Value"
+                                                  Placeholder="Filtrar por descrição..."
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense"
+                                                  Clearable="true" />
+                                </FilterTemplate>
+                            </PropertyColumn>
+                            
+                            <PropertyColumn Property="x => x.CreatedAt" 
+                                            Title="Criado em"
+                                            Format="dd/MM/yyyy HH:mm"
+                                            Filterable="false"
+                                            Sortable="true" />
+                            
+                            <TemplateColumn Title="Ações" 
+                                            Sortable="false" 
+                                            Filterable="false"
+                                            CellClass="d-flex justify-end">
+                                <CellTemplate Context="cellContext">
                                     <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
                                         <MudIconButton Icon="Icons.Material.Filled.Edit" 
                                                        Color="Color.Primary" 
                                                        Size="Size.Small"
-                                                       OnClick="() => EditPublisher(item.Item.Id)" />
+                                                       Title="Editar"
+                                                       OnClick="@(() => Navigation.NavigateTo($"/publishers/edit/{cellContext.Item.Id}"))" />
                                         <MudIconButton Icon="Icons.Material.Filled.Delete" 
                                                        Color="Color.Error" 
                                                        Size="Size.Small"
-                                                       OnClick="() => DeletePublisher(item.Item.Id)" />
+                                                       Title="Excluir"
+                                                       OnClick="@(() => DeleteSinglePublisher(cellContext.Item))" />
                                     </MudButtonGroup>
                                 </CellTemplate>
                             </TemplateColumn>
                         </Columns>
+                        
                         <PagerContent>
-                            <MudDataGridPager T="PublisherViewModel" />
+                            <MudDataGridPager T="PublisherViewModel" 
+                                              InfoFormat="{first_item}-{last_item} de {all_items}" />
                         </PagerContent>
+                        
+                        <NoRecordsContent>
+                            <div class="d-flex flex-column align-center justify-center pa-4">
+                                <MudIcon Icon="Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Default" />
+                                <MudText Typo="Typo.subtitle1" Class="mt-2">Nenhuma editora encontrada</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @if (!string.IsNullOrEmpty(_globalSearchString))
+                                    {
+                                        <span>Tente ajustar os filtros de pesquisa</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Comece criando uma nova editora</span>
+                                    }
+                                </MudText>
+                            </div>
+                        </NoRecordsContent>
+                        
+                        <LoadingContent>
+                            <div class="d-flex justify-center align-center pa-4">
+                                <MudProgressCircular Indeterminate="true" />
+                                <MudText Class="ml-3">Carregando editoras...</MudText>
+                            </div>
+                        </LoadingContent>
                     </MudDataGrid>
                 </MudCardContent>
             </MudCard>
+            
+            <!-- Ações em lote -->
+            @if (_selectedItems.Any())
+            {
+                <MudPaper Class="pa-4 mt-3" Elevation="2">
+                    <div class="d-flex align-center justify-space-between">
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="Icons.Material.Filled.CheckCircle" Color="Color.Info" Class="mr-2" />
+                            <MudText Typo="Typo.subtitle1">
+                                @_selectedItems.Count editora@(_selectedItems.Count == 1 ? "" : "s") selecionada@(_selectedItems.Count == 1 ? "" : "s")
+                            </MudText>
+                        </div>
+                        <div>
+                            <MudButton Variant="Variant.Text" 
+                                       StartIcon="Icons.Material.Filled.Clear"
+                                       OnClick="ClearSelection">
+                                Limpar Seleção
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" 
+                                       Color="Color.Error" 
+                                       StartIcon="Icons.Material.Filled.DeleteSweep"
+                                       OnClick="DeleteMultiplePublishers"
+                                       Class="ml-2">
+                                Excluir Selecionadas
+                            </MudButton>
+                        </div>
+                    </div>
+                </MudPaper>
+            }
         </MudContainer>
-
-
     </Authorized>
     <NotAuthorized>
         <MudText Typo="Typo.h3" GutterBottom="true">Você não tem permissão para acessar esta página.</MudText>
     </NotAuthorized>
 </AuthorizeView>
 
-
 @code {
-    private SearchPublisherQuery searchQuery = new();
-    private List<PublisherViewModel> publishers = new();
-    private bool loading = false;
+    private MudDataGrid<PublisherViewModel>? _dataGrid;
+    private bool _loading = false;
+    private string _globalSearchString = string.Empty;
+    private HashSet<PublisherViewModel> _selectedItems = new();
 
-    protected override async Task OnInitializedAsync()
+    private async Task<GridData<PublisherViewModel>> LoadGridData(GridState<PublisherViewModel> state)
     {
-        await SearchPublishers();
-    }
-
-    private async Task SearchPublishers()
-    {
-        loading = true;
+        _loading = true;
         try
         {
-            var result = await Mediator.Send(searchQuery);
-            publishers = result.Data.ToList();
+            // Constrói a query do Gridify
+            var gridifyQuery = new GetPublishersGridQuery
+            {
+                Page = state.Page + 1, // MudBlazor usa base 0, Gridify usa base 1
+                PageSize = state.PageSize,
+                OrderBy = string.Join(",", state.SortDefinitions.Select(s => $"{s.SortBy} {(s.Descending ? "desc" : "asc")}")),
+                Filter = BuildFilter(state)
+            };
+
+            var result = await Mediator.Send(gridifyQuery);
+
+            return new GridData<PublisherViewModel>
+            {
+                Items = result.Data,
+                TotalItems = result.PagedResult?.RowCount ?? 0
+            };
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Erro ao carregar editoras: {ex.Message}", Severity.Error);
+            return new GridData<PublisherViewModel> { Items = new List<PublisherViewModel>(), TotalItems = 0 };
         }
         finally
         {
-            loading = false;
+            _loading = false;
         }
     }
 
-    private void ClearFilters()
+    private string BuildFilter(GridState<PublisherViewModel> state)
     {
-        searchQuery = new SearchPublisherQuery();
+        var filters = new List<string>();
+
+        // Filtro global
+        if (!string.IsNullOrWhiteSpace(_globalSearchString))
+        {
+            filters.Add($"(name@=*{_globalSearchString}*||description@=*{_globalSearchString}*)");
+        }
+
+        // Filtros por coluna
+        foreach (var filter in state.FilterDefinitions.Where(f => !string.IsNullOrWhiteSpace(f.Value?.ToString())))
+        {
+            var columnName = filter.Column?.PropertyName?.ToLowerInvariant();
+            var value = filter.Value?.ToString();
+            
+            if (!string.IsNullOrWhiteSpace(columnName) && !string.IsNullOrWhiteSpace(value))
+            {
+                filters.Add($"{columnName}@=*{value}*");
+            }
+        }
+
+        return string.Join("&", filters);
+    }
+
+    private async Task OnGlobalSearch(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "Escape")
+        {
+            await RefreshGrid();
+        }
+    }
+
+    private async Task RefreshGrid()
+    {
+        if (_dataGrid != null)
+        {
+            await _dataGrid.ReloadServerData();
+        }
+    }
+
+    private void OnSelectedItemsChanged(HashSet<PublisherViewModel> selectedItems)
+    {
+        _selectedItems = selectedItems;
         StateHasChanged();
     }
 
-    private void CreatePublisher()
+    private void ClearSelection()
     {
-        Navigation.NavigateTo("/publishers/create");
+        _selectedItems.Clear();
+        StateHasChanged();
     }
 
-    private void EditPublisher(Guid id)
-    {
-        Navigation.NavigateTo($"/publishers/edit/{id}");
-    }
-
-    private async Task DeletePublisher(Guid id)
+    private async Task DeleteSinglePublisher(PublisherViewModel publisher)
     {
         var parameters = new DialogParameters
         {
-            ["ContentText"] = "Tem certeza que deseja excluir esta editora? Esta ação não pode ser desfeita.",
+            ["ContentText"] = $"Tem certeza que deseja excluir a editora '{publisher.Name}'? Esta ação não pode ser desfeita.",
             ["ButtonText"] = "Excluir",
             ["Color"] = Color.Error
         };
@@ -158,18 +297,63 @@
         var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirmar Exclusão", parameters);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result != null && !result.Canceled)
         {
             try
             {
-                // TODO: Implementar comando de exclusão
-                // await Mediator.Send(new DeletePublisherCommand(id));
-                Snackbar.Add("Editora excluída com sucesso!", Severity.Success);
-                await SearchPublishers();
+                var command = new DeleteMultiplePublishersCommand(new[] { publisher.Id });
+                var deleteResult = await Mediator.Send(command);
+
+                if (deleteResult.Success)
+                {
+                    Snackbar.Add("Editora excluída com sucesso!", Severity.Success);
+                    await RefreshGrid();
+                }
+                else
+                {
+                    Snackbar.Add(deleteResult.Message, Severity.Error);
+                }
             }
             catch (Exception ex)
             {
                 Snackbar.Add($"Erro ao excluir editora: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteMultiplePublishers()
+    {
+        if (!_selectedItems.Any()) return;
+
+        var parameters = new DialogParameters<DeleteMultiplePublishersDialog>
+        {
+            [nameof(DeleteMultiplePublishersDialog.SelectedPublishers)] = _selectedItems.ToList()
+        };
+
+        var dialog = await DialogService.ShowAsync<DeleteMultiplePublishersDialog>("Confirmar Exclusão Múltipla", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            try
+            {
+                var command = new DeleteMultiplePublishersCommand(_selectedItems.Select(p => p.Id));
+                var deleteResult = await Mediator.Send(command);
+
+                if (deleteResult.Success)
+                {
+                    Snackbar.Add(deleteResult.Message, Severity.Success);
+                    ClearSelection();
+                    await RefreshGrid();
+                }
+                else
+                {
+                    Snackbar.Add(deleteResult.Message, Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao excluir editoras: {ex.Message}", Severity.Error);
             }
         }
     }

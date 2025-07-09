@@ -1,0 +1,159 @@
+@page "/genders/create"
+@page "/genders/edit/{Id:guid}"
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+@using SistemaLivro.Application.UseCases.Genders.Commands
+@using SistemaLivro.Application.UseCases.Genders.Queries
+@using SistemaLivro.Application.UseCases.Genders.ViewModels
+@inject IMediator Mediator
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+@attribute [Authorize]
+
+<PageTitle>@PageTitle</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">@PageTitle</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    <EditForm Model="@command" OnValidSubmit="OnValidSubmit" Context="editFormContext">
+                        <DataAnnotationsValidator />
+
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="command.Name" Label="Nome *" Variant="Variant.Outlined"
+                                    Required="true" MaxLength="150" Counter="150" HelperText="Digite o nome do gênero"
+                                    For="@(() => command.Name)" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="command.Description" Label="Descrição *"
+                                    Variant="Variant.Outlined" Lines="4" Required="true" MaxLength="4000" Counter="4000"
+                                    HelperText="Digite a descrição do gênero" For="@(() => command.Description)" />
+                            </MudItem>
+                        </MudGrid>
+                    </EditForm>
+                </MudCardContent>
+
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel"
+                        StartIcon="Icons.Material.Filled.Cancel">
+                        Cancelar
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnValidSubmit"
+                        StartIcon="@(IsEditMode ? Icons.Material.Filled.Edit : Icons.Material.Filled.Add)"
+                        Disabled="@loading">
+                        @if (loading)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Processando...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>@ButtonText</MudText>
+                        }
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h3" GutterBottom="true">Você não tem permissão para acessar esta página.</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private CreateGenderCommand command = new();
+    private bool loading = false;
+
+    private bool IsEditMode => Id.HasValue;
+    private string PageTitle => IsEditMode ? "Editar Gênero" : "Novo Gênero";
+    private string ButtonText => IsEditMode ? "Atualizar" : "Criar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            await LoadGender();
+        }
+    }
+
+    private async Task LoadGender()
+    {
+        try
+        {
+            loading = true;
+            var query = new GetByIdGenderQuery(Id!.Value);
+            var result = await Mediator.Send(query);
+
+            if (result.Data != null)
+            {
+                command.Name = result.Data.Name;
+                command.Description = result.Data.Description;
+            }
+            else
+            {
+                Snackbar.Add("Gênero não encontrado!", Severity.Error);
+                Navigation.NavigateTo("/genders");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar gênero: {ex.Message}", Severity.Error);
+            Navigation.NavigateTo("/genders");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        try
+        {
+            loading = true;
+
+            if (IsEditMode)
+            {
+                var updateCommand = new UpdateGenderCommand(Id!.Value, command.Name, command.Description);
+                await Mediator.Send(updateCommand);
+                Snackbar.Add("Gênero atualizado com sucesso!", Severity.Success);
+            }
+            else
+            {
+                await Mediator.Send(command);
+                Snackbar.Add("Gênero criado com sucesso!", Severity.Success);
+            }
+
+            Navigation.NavigateTo("/genders");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao salvar gênero: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/genders");
+    }
+}

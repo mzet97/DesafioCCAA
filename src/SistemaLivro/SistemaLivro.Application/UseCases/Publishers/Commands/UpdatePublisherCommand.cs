@@ -20,4 +20,15 @@ public class UpdatePublisherCommand : IRequest<BaseResult<Guid>>
     [MinLength(2)]
     [MaxLength(4000)]
     public string Description { get; set; } = string.Empty;
+
+    public UpdatePublisherCommand(Guid id, string name, string description)
+    {
+        Id = id;
+        Name = name;
+        Description = description;
+    }
+
+    public UpdatePublisherCommand()
+    {
+    }
 }

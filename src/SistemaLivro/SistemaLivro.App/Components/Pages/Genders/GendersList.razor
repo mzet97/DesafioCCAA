@@ -1,10 +1,13 @@
 @page "/genders"
+@using Gridify
 @using MediatR
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
+@using SistemaLivro.Application.UseCases.Genders.Commands
 @using SistemaLivro.Application.UseCases.Genders.Queries
 @using SistemaLivro.Application.UseCases.Genders.ViewModels
 @using SistemaLivro.Shared.ViewModels
+@using SistemaLivro.App.Components.Shared
 @inject IMediator Mediator
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -14,75 +17,68 @@
 
 <PageTitle>Gêneros</PageTitle>
 
-<AuthorizeView> 
+<AuthorizeView>
     <Authorized>
-        
-        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
             <MudText Typo="Typo.h4" Class="mb-4">Gerenciamento de Gêneros</MudText>
-    
-            <MudCard>
+
+            <!-- Toolbar com ações -->
+            <MudCard Class="mb-4">
                 <MudCardContent>
-                    <!-- Filtros -->
-                    <MudGrid Class="mb-4">
-                        <MudItem xs="12" sm="6" md="4">
-                            <MudTextField @bind-Value="searchQuery.Name" 
-                                          Label="Nome" 
-                                          Variant="Variant.Outlined" 
-                                          Adornment="Adornment.Start" 
-                                          AdornmentIcon="Icons.Material.Filled.Search" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="2">
-                            <MudButton Variant="Variant.Filled" 
-                                       Color="Color.Primary" 
-                                       StartIcon="Icons.Material.Filled.Search"
-                                       OnClick="SearchGenders">
-                                Buscar
-                            </MudButton>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="2">
-                            <MudButton Variant="Variant.Outlined" 
-                                       Color="Color.Secondary" 
-                                       StartIcon="Icons.Material.Filled.Clear"
-                                       OnClick="ClearFilters">
-                                Limpar
-                            </MudButton>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="2">
-                            <MudButton Variant="Variant.Filled" 
-                                       Color="Color.Success" 
-                                       StartIcon="Icons.Material.Filled.Add"
-                                       OnClick="CreateGender">
+                    <MudGrid AlignItems="Center">
+                        <MudItem xs="12" md="6">
+                            <MudButton Variant="Variant.Filled" Color="Color.Success"
+                                StartIcon="Icons.Material.Filled.Add" OnClick="CreateGender">
                                 Novo Gênero
                             </MudButton>
+                        </MudItem>
+                        <MudItem xs="12" md="6" Class="d-flex justify-end">
+                            @if (selectedGenders.Any())
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Error"
+                                    StartIcon="Icons.Material.Filled.Delete" OnClick="DeleteSelectedGenders">
+                                    Excluir Selecionados (@selectedGenders.Count)
+                                </MudButton>
+                            }
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>
             </MudCard>
-    
-            <!-- Tabela de Gêneros -->
-            <MudCard Class="mt-4">
+
+            <!-- Data Grid Avançado -->
+            <MudCard>
                 <MudCardContent>
-                    <MudDataGrid T="GenderViewModel" 
-                                 Items="@genders" 
-                                 Loading="@loading"
-                                 Hover="true"
-                                 Striped="true"
-                                 Dense="true">
+                    <MudDataGrid T="GenderViewModel" @ref="dataGrid" ServerData="LoadServerData" MultiSelection="true"
+                        @bind-SelectedItems="selectedGenders" Filterable="true"
+                        FilterMode="DataGridFilterMode.ColumnFilterRow" SortMode="SortMode.Multiple" Virtualize="true"
+                        Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="600px">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Gêneros</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="globalSearchTerm" Placeholder="Busca global..."
+                                Adornment="Adornment.Start" AdornmentIcon="Icons.Material.Filled.Search"
+                                IconSize="Size.Medium" Class="mt-0" Debounce="500" DebounceInterval="300"
+                                OnDebounceIntervalElapsed="OnGlobalSearch" />
+                        </ToolBarContent>
                         <Columns>
-                            <PropertyColumn Property="x => x.Name" Title="Nome" />
-                            <PropertyColumn Property="x => x.Description" Title="Descrição" />
-                            <PropertyColumn Property="x => x.CreatedAt" Title="Criado em" Format="dd/MM/yyyy HH:mm" />
-                            <TemplateColumn Title="Ações" Sortable="false">
-                                <CellTemplate Context="item">
+                            <SelectColumn T="GenderViewModel" />
+                            <PropertyColumn Property="x => x.Name" Title="Nome" Filterable="true" />
+                            <PropertyColumn Property="x => x.Description" Title="Descrição" Filterable="true" />
+                            <PropertyColumn Property="x => x.CreatedAt" Title="Criado em" Filterable="true">
+                                <CellTemplate Context="cellContext">
+                                    @cellContext.Item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <TemplateColumn Title="Ações" Sortable="false" Filterable="false"
+                                Class="d-flex justify-end">
+                                <CellTemplate Context="cellContext">
                                     <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
-                                        <MudIconButton Icon="Icons.Material.Filled.Edit" 
-                                                       Color="Color.Primary" 
-                                                       Size="Size.Small"
-                                                       OnClick="() => EditGender(item.Item.Id)" />
-                                        <MudIconButton Icon="Icons.Material.Filled.Delete" 
-                                                       Color="Color.Error" 
-                                                       Size="Size.Small"
-                                                       OnClick="() => DeleteGender(item.Item.Id)" />
+                                        <MudIconButton Icon="Icons.Material.Filled.Edit" Color="Color.Primary"
+                                            Size="Size.Small" Title="Editar"
+                                            OnClick="() => EditGender(cellContext.Item.Id)" />
+                                        <MudIconButton Icon="Icons.Material.Filled.Delete" Color="Color.Error"
+                                            Size="Size.Small" Title="Excluir"
+                                            OnClick="() => DeleteGender(cellContext.Item)" />
                                     </MudButtonGroup>
                                 </CellTemplate>
                             </TemplateColumn>
@@ -90,51 +86,120 @@
                         <PagerContent>
                             <MudDataGridPager T="GenderViewModel" />
                         </PagerContent>
+                        <NoRecordsContent>
+                            <MudText>Nenhum gênero encontrado</MudText>
+                        </NoRecordsContent>
                     </MudDataGrid>
                 </MudCardContent>
             </MudCard>
         </MudContainer>
-
     </Authorized>
     <NotAuthorized>
         <MudText Typo="Typo.h3" GutterBottom="true">Você não tem permissão para acessar esta página.</MudText>
     </NotAuthorized>
 </AuthorizeView>
 
-
-
 @code {
-    private SearchGenderQuery searchQuery = new();
-    private List<GenderViewModel> genders = new();
-    private bool loading = false;
+    private MudDataGrid<GenderViewModel>? dataGrid;
+    private HashSet<GenderViewModel> selectedGenders = new();
+    private string globalSearchTerm = string.Empty;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        await SearchGenders();
+        // Inicialização se necessária
+        return Task.CompletedTask;
     }
 
-    private async Task SearchGenders()
+    private async Task<GridData<GenderViewModel>> LoadServerData(GridState<GenderViewModel> state)
     {
-        loading = true;
         try
         {
-            var result = await Mediator.Send(searchQuery);
-            genders = result.Data.ToList();
+            var gridifyQuery = new GridifyQuery
+            {
+                Page = state.Page + 1, // MudBlazor usa base 0, Gridify usa base 1
+                PageSize = state.PageSize,
+                Filter = BuildFilter(state),
+                OrderBy = BuildOrderBy(state)
+            };
+
+            var query = new GetGendersGridQuery(gridifyQuery);
+            var result = await Mediator.Send(query);
+
+            return new GridData<GenderViewModel>
+            {
+                Items = result.Data,
+                TotalItems = result.PagedResult.RowCount
+            };
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Erro ao carregar gêneros: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            loading = false;
+            return new GridData<GenderViewModel> { Items = new List<GenderViewModel>(), TotalItems = 0 };
         }
     }
 
-    private void ClearFilters()
+    private string BuildFilter(GridState<GenderViewModel> state)
     {
-        searchQuery = new SearchGenderQuery();
-        StateHasChanged();
+        var filters = new List<string>();
+
+        // Filtro global
+        if (!string.IsNullOrWhiteSpace(globalSearchTerm))
+        {
+            var globalFilter = $"(name|=*{globalSearchTerm} || description|=*{globalSearchTerm})";
+            filters.Add(globalFilter);
+        }
+
+        // Filtros de coluna
+        foreach (var filterDefinition in state.FilterDefinitions)
+        {
+            var columnName = GetColumnName(filterDefinition);
+            var filterValue = filterDefinition.Value?.ToString();
+
+            if (!string.IsNullOrWhiteSpace(filterValue))
+            {
+                filters.Add($"{columnName}|=*{filterValue}");
+            }
+        }
+
+        return string.Join(" && ", filters);
+    }
+
+    private string BuildOrderBy(GridState<GenderViewModel> state)
+    {
+        if (!state.SortDefinitions.Any())
+            return "createdAt desc"; // Ordenação padrão
+
+        var sortItems = new List<string>();
+        foreach (var sortDefinition in state.SortDefinitions)
+        {
+            var columnName = GetColumnName(sortDefinition.SortBy);
+            var direction = sortDefinition.Descending ? " desc" : "";
+            sortItems.Add($"{columnName}{direction}");
+        }
+
+        return string.Join(", ", sortItems);
+    }
+
+    private string GetColumnName(object columnIdentifier)
+    {
+        var columnName = columnIdentifier?.ToString() ?? "";
+
+        return columnName switch
+        {
+            nameof(GenderViewModel.Name) => "name",
+            nameof(GenderViewModel.Description) => "description",
+            nameof(GenderViewModel.CreatedAt) => "createdAt",
+            nameof(GenderViewModel.UpdatedAt) => "updatedAt",
+            _ => columnName.ToLower()
+        };
+    }
+
+    private async Task OnGlobalSearch()
+    {
+        if (dataGrid != null)
+        {
+            await dataGrid.ReloadServerData();
+        }
     }
 
     private void CreateGender()
@@ -147,11 +212,11 @@
         Navigation.NavigateTo($"/genders/edit/{id}");
     }
 
-    private async Task DeleteGender(Guid id)
+    private async Task DeleteGender(GenderViewModel gender)
     {
         var parameters = new DialogParameters
         {
-            ["ContentText"] = "Tem certeza que deseja excluir este gênero? Esta ação não pode ser desfeita.",
+            ["ContentText"] = $"Tem certeza que deseja excluir o gênero '{gender.Name}'? Esta ação não pode ser desfeita.",
             ["ButtonText"] = "Excluir",
             ["Color"] = Color.Error
         };
@@ -159,14 +224,15 @@
         var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirmar Exclusão", parameters);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             try
             {
-                // TODO: Implementar comando de exclusão
-                // await Mediator.Send(new DeleteGenderCommand(id));
+                var command = new DeletesGenderCommand(new[] { gender.Id });
+                var deleteResult = await Mediator.Send(command);
+
                 Snackbar.Add("Gênero excluído com sucesso!", Severity.Success);
-                await SearchGenders();
+                await dataGrid!.ReloadServerData();
             }
             catch (Exception ex)
             {
@@ -174,4 +240,44 @@
             }
         }
     }
+
+    private async Task DeleteSelectedGenders()
+    {
+        if (!selectedGenders.Any())
+        {
+            Snackbar.Add("Nenhum gênero selecionado", Severity.Warning);
+            return;
+        }
+
+        var parameters = new DialogParameters
+{
+{ "SelectedGenders", selectedGenders.ToList() }
+};
+
+        var dialog = await DialogService.ShowAsync<DeleteMultipleGendersDialog>("Confirmar Exclusão Múltipla", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                var ids = selectedGenders.Select(g => g.Id);
+                var command = new DeletesGenderCommand(ids);
+                var deleteResult = await Mediator.Send(command);
+
+                Snackbar.Add($"{selectedGenders.Count} gênero(s) excluído(s) com sucesso!", Severity.Success);
+                selectedGenders.Clear();
+                await dataGrid!.ReloadServerData();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao excluir gêneros: {ex.Message}", Severity.Error);
+            }
+        }
+    }
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                               

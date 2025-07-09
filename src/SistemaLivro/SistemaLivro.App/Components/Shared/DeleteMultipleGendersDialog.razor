@@ -1,0 +1,47 @@
+@using MudBlazor
+@using SistemaLivro.Application.UseCases.Genders.ViewModels
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex align-center mb-3">
+            <MudIcon Icon="Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Large" Class="mr-3" />
+            <MudText Typo="Typo.h6">Confirmar Exclusão Múltipla</MudText>
+        </div>
+
+        <MudText Class="mb-4">
+            Tem certeza que deseja excluir os seguintes <strong>@SelectedGenders.Count</strong> gênero(s)? Esta ação não
+            pode ser desfeita.
+        </MudText>
+
+        <MudPaper Class="pa-3" Elevation="2" Style="max-height: 200px; overflow-y: auto;">
+            @foreach (var gender in SelectedGenders)
+            {
+                <div class="d-flex align-center mb-2">
+                    <MudIcon Icon="Icons.Material.Filled.Label" Size="Size.Small" Class="mr-2" />
+                    <MudText>@gender.Name</MudText>
+                </div>
+            }
+        </MudPaper>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Submit"
+            StartIcon="Icons.Material.Filled.Delete">
+            Excluir Gêneros
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IDialogReference MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public List<GenderViewModel> SelectedGenders { get; set; } = new();
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Close(DialogResult.Cancel());
+}
+
+           

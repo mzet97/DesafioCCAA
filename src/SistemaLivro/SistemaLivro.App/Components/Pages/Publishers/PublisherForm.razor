@@ -1,0 +1,224 @@
+@page "/publishers/new"
+@page "/publishers/edit/{Id:guid}"
+@using Microsoft.AspNetCore.Authorization
+@using MediatR
+@using MudBlazor
+@using SistemaLivro.Application.UseCases.Publishers.Commands
+@using SistemaLivro.Application.UseCases.Publishers.Queries
+@using SistemaLivro.Application.UseCases.Publishers.ViewModels
+@inject IMediator Mediator
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>@PageTitle</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+            <MudBreadcrumbs Items="_breadcrumbItems" Class="mb-4" />
+            
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@(IsEditMode ? Icons.Material.Filled.Edit : Icons.Material.Filled.Add)" Class="mr-3" />
+                            <MudText Typo="Typo.h6">@PageTitle</MudText>
+                        </div>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                
+                <MudCardContent>
+                    @if (_loading)
+                    {
+                        <div class="d-flex justify-center align-center" style="min-height: 200px;">
+                            <MudProgressCircular Indeterminate="true" />
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="@_model" OnValidSubmit="@SubmitForm" Context="editContext">
+                            <DataAnnotationsValidator />
+                            
+                            <MudGrid>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="_model.Name"
+                                                  Label="Nome"
+                                                  Required="true"
+                                                  RequiredError="Nome é obrigatório"
+                                                  MaxLength="100"
+                                                  Counter="100"
+                                                  Variant="Variant.Outlined"
+                                                  For="@(() => _model.Name)" />
+                                </MudItem>
+                                
+                                <MudItem xs="12">
+                                    <MudTextField @bind-Value="_model.Description"
+                                                  Label="Descrição"
+                                                  Lines="3"
+                                                  MaxLength="500"
+                                                  Counter="500"
+                                                  Variant="Variant.Outlined"
+                                                  For="@(() => _model.Description)" />
+                                </MudItem>
+                            </MudGrid>
+                            
+                            <ValidationSummary />
+                        </EditForm>
+                    }
+                </MudCardContent>
+                
+                <MudCardActions>
+                    <MudButton OnClick="@(() => Navigation.NavigateTo("/publishers"))"
+                               Variant="Variant.Text"
+                               StartIcon="Icons.Material.Filled.ArrowBack">
+                        Voltar
+                    </MudButton>
+                    
+                    <MudSpacer />
+                    
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               StartIcon="Icons.Material.Filled.Save"
+                               OnClick="@SubmitForm"
+                               Loading="@_submitting"
+                               Disabled="@(_loading || _submitting)">
+                        @if (IsEditMode)
+                        {
+                            <span>Atualizar</span>
+                        }
+                        else
+                        {
+                            <span>Criar</span>
+                        }
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h3" GutterBottom="true">Você não tem permissão para acessar esta página.</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private PublisherFormModel _model = new();
+    private bool _loading = false;
+    private bool _submitting = false;
+
+    private bool IsEditMode => Id.HasValue;
+    private string PageTitle => IsEditMode ? "Editar Editora" : "Nova Editora";
+
+    private List<BreadcrumbItem> _breadcrumbItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SetupBreadcrumbs();
+        
+        if (IsEditMode && Id.HasValue)
+        {
+            await LoadPublisher(Id.Value);
+        }
+    }
+
+    private void SetupBreadcrumbs()
+    {
+        _breadcrumbItems = new List<BreadcrumbItem>
+        {
+            new("Início", "/", false, Icons.Material.Filled.Home),
+            new("Editoras", "/publishers", false, Icons.Material.Filled.Business),
+            new(PageTitle, null, true, IsEditMode ? Icons.Material.Filled.Edit : Icons.Material.Filled.Add)
+        };
+    }
+
+    private async Task LoadPublisher(Guid id)
+    {
+        _loading = true;
+        try
+        {
+            var query = new GetByIdPublisherQuery(id);
+            var result = await Mediator.Send(query);
+            
+            if (result.Success && result.Data != null)
+            {
+                _model = new PublisherFormModel
+                {
+                    Name = result.Data.Name,
+                    Description = result.Data.Description
+                };
+            }
+            else
+            {
+                Snackbar.Add("Editora não encontrada.", Severity.Error);
+                Navigation.NavigateTo("/publishers");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar editora: {ex.Message}", Severity.Error);
+            Navigation.NavigateTo("/publishers");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SubmitForm()
+    {
+        _submitting = true;
+        try
+        {
+            if (IsEditMode)
+            {
+                await UpdatePublisher();
+            }
+            else
+            {
+                await CreatePublisher();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao salvar editora: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private async Task CreatePublisher()
+    {
+        var command = new CreatePublisherCommand(_model.Name, _model.Description);
+        var result = await Mediator.Send(command);
+        
+        Snackbar.Add("Editora criada com sucesso!", Severity.Success);
+        Navigation.NavigateTo("/publishers");
+    }
+
+    private async Task UpdatePublisher()
+    {
+        if (!Id.HasValue) return;
+        
+        var command = new UpdatePublisherCommand(Id.Value, _model.Name, _model.Description);
+        var result = await Mediator.Send(command);
+        
+        Snackbar.Add("Editora atualizada com sucesso!", Severity.Success);
+        Navigation.NavigateTo("/publishers");
+    }
+
+    public class PublisherFormModel
+    {
+        [Required(ErrorMessage = "Nome é obrigatório")]
+        [StringLength(100, ErrorMessage = "Nome deve ter no máximo 100 caracteres")]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(500, ErrorMessage = "Descrição deve ter no máximo 500 caracteres")]
+        public string Description { get; set; } = string.Empty;
+    }
+}
+
+@using System.ComponentModel.DataAnnotations

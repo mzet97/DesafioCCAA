@@ -1,0 +1,90 @@
+@using MudBlazor
+@using SistemaLivro.Application.UseCases.Publishers.ViewModels
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex align-center mb-4">
+            <MudIcon Icon="Icons.Material.Filled.Delete" Color="Color.Error" Class="mr-3" Style="font-size: 2rem;" />
+            <div>
+                <MudText Typo="Typo.h6">Confirmar Exclusão</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Esta ação não pode ser desfeita
+                </MudText>
+            </div>
+        </div>
+        
+        <MudAlert Severity="Severity.Warning" Class="mb-4">
+            <MudText Typo="Typo.body2">
+                @if (SelectedCount == 1)
+                {
+                    <span>Tem certeza que deseja excluir esta editora?</span>
+                }
+                else
+                {
+                    <span>Tem certeza que deseja excluir <strong>@SelectedCount editoras</strong>?</span>
+                }
+            </MudText>
+        </MudAlert>
+
+        @if (SelectedPublishers != null && SelectedPublishers.Any())
+        {
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Editoras selecionadas:</MudText>
+            <div style="max-height: 200px; overflow-y: auto;" class="mb-3">
+                @foreach (var publisher in SelectedPublishers.Take(10))
+                {
+                    <MudChip T="string" Text="@publisher.Name" 
+                             Size="Size.Small" 
+                             Color="Color.Error" 
+                             Variant="Variant.Text" 
+                             Class="ma-1" />
+                }
+                @if (SelectedPublishers.Count() > 10)
+                {
+                    <MudChip T="string" Text="@($"+ {SelectedPublishers.Count() - 10} mais...")" 
+                             Size="Size.Small" 
+                             Color="Color.Default" 
+                             Variant="Variant.Text" 
+                             Class="ma-1" />
+                }
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">
+            Cancelar
+        </MudButton>
+        <MudButton Color="Color.Error" 
+                   Variant="Variant.Filled" 
+                   OnClick="Confirm"
+                   StartIcon="Icons.Material.Filled.Delete"
+                   Loading="@IsDeleting"
+                   Disabled="@IsDeleting">
+            @if (IsDeleting)
+            {
+                <span>Excluindo...</span>
+            }
+            else
+            {
+                <span>Excluir @(SelectedCount == 1 ? "Editora" : $"{SelectedCount} Editoras")</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IDialogReference MudDialog { get; set; } = null!;
+
+    [Parameter] 
+    public List<PublisherViewModel> SelectedPublishers { get; set; } = new();
+
+    [Parameter] 
+    public bool IsDeleting { get; set; } = false;
+
+    private int SelectedCount => SelectedPublishers?.Count ?? 0;
+
+    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+
+    private void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}
