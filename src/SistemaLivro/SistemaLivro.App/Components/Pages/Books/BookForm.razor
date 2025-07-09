@@ -1,0 +1,400 @@
+@page "/books/create"
+@page "/books/edit/{Id:guid?}"
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+@using SistemaLivro.Application.UseCases.Books.Commands
+@using SistemaLivro.Application.UseCases.Books.Queries
+@using SistemaLivro.Application.UseCases.Genders.Queries
+@using SistemaLivro.Application.UseCases.Publishers.Queries
+@using SistemaLivro.Application.UseCases.Genders.ViewModels
+@using SistemaLivro.Application.UseCases.Publishers.ViewModels
+@using SistemaLivro.Application.UseCases.Books.ViewModels
+@inject IMediator Mediator
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+@attribute [Authorize]
+
+<PageTitle>@PageTitle</PageTitle>
+
+<AuthorizeView> 
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+            <MudText Typo="Typo.h4" Class="mb-4">@PageTitle</MudText>
+    
+            @if (loading)
+            {
+                <MudProgressLinear Indeterminate="true" />
+            }
+            else if (IsEditMode && currentBook == null)
+            {
+                <MudAlert Severity="Severity.Error">Livro não encontrado.</MudAlert>
+            }
+            else
+            {
+                <MudCard>
+                    <MudCardContent>
+                        @if (IsEditMode && updateCommand != null)
+                        {
+                            <EditForm Model="@updateCommand" OnValidSubmit="@HandleValidSubmit" Context="editContext">
+                                <DataAnnotationsValidator />
+                        
+                                <MudGrid>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="updateCommand.Title" 
+                                                      Label="Título" 
+                                                      Variant="Variant.Outlined" 
+                                                      Required="true"
+                                                      For="@(() => updateCommand.Title)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="updateCommand.Author" 
+                                                      Label="Autor" 
+                                                      Variant="Variant.Outlined" 
+                                                      Required="true"
+                                                      For="@(() => updateCommand.Author)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="updateCommand.ISBN" 
+                                                      Label="ISBN" 
+                                                      Variant="Variant.Outlined" 
+                                                      Required="true"
+                                                      For="@(() => updateCommand.ISBN)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudSelect @bind-Value="updateCommand.GenderId" 
+                                                   Label="Gênero" 
+                                                   Variant="Variant.Outlined" 
+                                                   Required="true"
+                                                   For="@(() => updateCommand.GenderId)">
+                                            @foreach (var gender in genders)
+                                            {
+                                                <MudSelectItem Value="@gender.Id">@gender.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudSelect @bind-Value="updateCommand.PublisherId" 
+                                                   Label="Editora" 
+                                                   Variant="Variant.Outlined" 
+                                                   Required="true"
+                                                   For="@(() => updateCommand.PublisherId)">
+                                            @foreach (var publisher in publishers)
+                                            {
+                                                <MudSelectItem Value="@publisher.Id">@publisher.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                            
+                                    <MudItem xs="12">
+                                        <MudTextField @bind-Value="updateCommand.Synopsis" 
+                                                      Label="Sinopse" 
+                                                      Variant="Variant.Outlined" 
+                                                      Lines="4"
+                                                      For="@(() => updateCommand.Synopsis)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12">
+                                        <MudFileUpload T="IBrowserFile" 
+                                                       Accept=".jpg,.jpeg,.png,.gif"
+                                                       FilesChanged="OnCoverImageChanged"
+                                                       MaximumFileCount="1">
+                                            <ActivatorContent>
+                                                <MudButton HtmlTag="label"
+                                                           Variant="Variant.Filled"
+                                                           Color="Color.Primary"
+                                                           StartIcon="Icons.Material.Filled.CloudUpload">
+                                                    Alterar Capa
+                                                </MudButton>
+                                            </ActivatorContent>
+                                        </MudFileUpload>
+                                        @if (!string.IsNullOrEmpty(selectedFileName))
+                                        {
+                                            <MudText Typo="Typo.body2" Class="mt-2">Novo arquivo selecionado: @selectedFileName</MudText>
+                                        }
+                                        @if (currentBook?.CoverImage != null && string.IsNullOrEmpty(selectedFileName))
+                                        {
+                                            <MudText Typo="Typo.body2" Class="mt-2">Capa atual: @currentBook.CoverImage.FileName</MudText>
+                                        }
+                                    </MudItem>
+                                </MudGrid>
+                        
+                                <MudCardActions Class="mt-4">
+                                    <MudButton Variant="Variant.Filled" 
+                                               Color="Color.Primary" 
+                                               ButtonType="ButtonType.Submit"
+                                               Disabled="@saving"
+                                               StartIcon="Icons.Material.Filled.Save">
+                                        @if (saving)
+                                        {
+                                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                            <MudText Class="ms-2">Salvando...</MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudText>Salvar</MudText>
+                                        }
+                                    </MudButton>
+                            
+                                    <MudButton Variant="Variant.Text" 
+                                               Color="Color.Secondary" 
+                                               OnClick="Cancel"
+                                               StartIcon="Icons.Material.Filled.Cancel">
+                                        Cancelar
+                                    </MudButton>
+                                </MudCardActions>
+                            </EditForm>
+                        }
+                        else if (!IsEditMode)
+                        {
+                            <EditForm Model="@createCommand" OnValidSubmit="@HandleValidSubmit" Context="editContext">
+                                <DataAnnotationsValidator />
+                        
+                                <MudGrid>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="createCommand.Title" 
+                                                      Label="Título" 
+                                                      Variant="Variant.Outlined" 
+                                                      Required="true"
+                                                      For="@(() => createCommand.Title)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="createCommand.Author" 
+                                                      Label="Autor" 
+                                                      Variant="Variant.Outlined" 
+                                                      Required="true"
+                                                      For="@(() => createCommand.Author)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="createCommand.ISBN" 
+                                                      Label="ISBN" 
+                                                      Variant="Variant.Outlined" 
+                                                      Required="true"
+                                                      For="@(() => createCommand.ISBN)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudSelect @bind-Value="createCommand.GenderId" 
+                                                   Label="Gênero" 
+                                                   Variant="Variant.Outlined" 
+                                                   Required="true"
+                                                   For="@(() => createCommand.GenderId)">
+                                            @foreach (var gender in genders)
+                                            {
+                                                <MudSelectItem Value="@gender.Id">@gender.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                            
+                                    <MudItem xs="12" md="6">
+                                        <MudSelect @bind-Value="createCommand.PublisherId" 
+                                                   Label="Editora" 
+                                                   Variant="Variant.Outlined" 
+                                                   Required="true"
+                                                   For="@(() => createCommand.PublisherId)">
+                                            @foreach (var publisher in publishers)
+                                            {
+                                                <MudSelectItem Value="@publisher.Id">@publisher.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                            
+                                    <MudItem xs="12">
+                                        <MudTextField @bind-Value="createCommand.Synopsis" 
+                                                      Label="Sinopse" 
+                                                      Variant="Variant.Outlined" 
+                                                      Lines="4"
+                                                      For="@(() => createCommand.Synopsis)" />
+                                    </MudItem>
+                            
+                                    <MudItem xs="12">
+                                        <MudFileUpload T="IBrowserFile" 
+                                                       Accept=".jpg,.jpeg,.png,.gif"
+                                                       FilesChanged="OnCoverImageChanged"
+                                                       MaximumFileCount="1">
+                                            <ActivatorContent>
+                                                <MudButton HtmlTag="label"
+                                                           Variant="Variant.Filled"
+                                                           Color="Color.Primary"
+                                                           StartIcon="Icons.Material.Filled.CloudUpload">
+                                                    Selecionar Capa
+                                                </MudButton>
+                                            </ActivatorContent>
+                                        </MudFileUpload>
+                                        @if (!string.IsNullOrEmpty(selectedFileName))
+                                        {
+                                            <MudText Typo="Typo.body2" Class="mt-2">Arquivo selecionado: @selectedFileName</MudText>
+                                        }
+                                    </MudItem>
+                                </MudGrid>
+                        
+                                <MudCardActions Class="mt-4">
+                                    <MudButton Variant="Variant.Filled" 
+                                               Color="Color.Primary" 
+                                               ButtonType="ButtonType.Submit"
+                                               Disabled="@saving"
+                                               StartIcon="Icons.Material.Filled.Save">
+                                        @if (saving)
+                                        {
+                                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                            <MudText Class="ms-2">Salvando...</MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudText>Salvar</MudText>
+                                        }
+                                    </MudButton>
+                            
+                                    <MudButton Variant="Variant.Text" 
+                                               Color="Color.Secondary" 
+                                               OnClick="Cancel"
+                                               StartIcon="Icons.Material.Filled.Cancel">
+                                        Cancelar
+                                    </MudButton>
+                                </MudCardActions>
+                            </EditForm>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h3" GutterBottom="true">Você não tem permissão para acessar esta página.</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    
+    private CreateBookCommand createCommand = new();
+    private UpdateBookCommand? updateCommand;
+    private BookViewModel? currentBook;
+    private List<GenderViewModel> genders = new();
+    private List<PublisherViewModel> publishers = new();
+    private bool loading = true;
+    private bool saving = false;
+    private string selectedFileName = string.Empty;
+    private IBrowserFile? selectedFile;
+
+    private bool IsEditMode => Id.HasValue && Id.Value != Guid.Empty;
+    private string PageTitle => IsEditMode ? "Editar Livro" : "Novo Livro";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            await LoadBook();
+        }
+        
+        await LoadGenders();
+        await LoadPublishers();
+        loading = false;
+    }
+
+    private async Task LoadBook()
+    {
+        try
+        {
+            var query = new GetByIdBookQuery(Id!.Value);
+            var response = await Mediator.Send(query);
+            currentBook = response.Data;
+            
+            if (currentBook != null)
+            {
+                updateCommand = new UpdateBookCommand
+                {
+                    Id = currentBook.Id,
+                    Title = currentBook.Title,
+                    Author = currentBook.Author,
+                    ISBN = currentBook.ISBN,
+                    Synopsis = currentBook.Synopsis,
+                    GenderId = currentBook.GenderId,
+                    PublisherId = currentBook.PublisherId
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar livro: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadGenders()
+    {
+        try
+        {
+            var query = new SearchGenderQuery();
+            var result = await Mediator.Send(query);
+            genders = result.Data.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar gêneros: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadPublishers()
+    {
+        try
+        {
+            var query = new SearchPublisherQuery();
+            var result = await Mediator.Send(query);
+            publishers = result.Data.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar editoras: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void OnCoverImageChanged(IBrowserFile file)
+    {
+        selectedFile = file;
+        selectedFileName = file.Name;
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        saving = true;
+        try
+        {
+            // TODO: Implementar upload da imagem se necessário
+            // if (selectedFile != null)
+            // {
+            //     // Processar upload da nova imagem
+            // }
+
+            object command = IsEditMode ? updateCommand! : createCommand;
+            var result = await Mediator.Send(command);
+            var successMessage = IsEditMode ? "Livro atualizado com sucesso!" : "Livro criado com sucesso!";
+            Snackbar.Add(successMessage, Severity.Success);
+            Navigation.NavigateTo("/books");
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = IsEditMode ? "Erro ao atualizar livro" : "Erro ao criar livro";
+            Snackbar.Add($"{errorMessage}: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/books");
+    }
+}

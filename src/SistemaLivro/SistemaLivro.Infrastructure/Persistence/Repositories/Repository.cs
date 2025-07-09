@@ -62,7 +62,7 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public virtual async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        if (predicate == null) 
+        if (predicate == null)
             throw new ArgumentNullException(nameof(predicate));
 
         return await DbSet.AsNoTracking().Where(predicate).ToListAsync();
@@ -75,7 +75,7 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public virtual async Task<TEntity?> GetByIdAsync(Guid id)
     {
-        if (id == Guid.Empty) 
+        if (id == Guid.Empty)
             throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         return await DbSet.FindAsync(id);
@@ -91,7 +91,7 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public virtual Task UpdateAsync(TEntity entity)
     {
-        if (entity is null) 
+        if (entity is null)
             throw new ArgumentNullException(nameof(entity));
 
         entity.Update();
@@ -132,7 +132,7 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public virtual async Task DisableAsync(Guid id)
     {
-        if (id == Guid.Empty) 
+        if (id == Guid.Empty)
             throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         var entity = await DbSet.FindAsync(id);
@@ -146,7 +146,7 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
 
     public async Task ActiveAsync(Guid id)
     {
-        if (id == Guid.Empty) 
+        if (id == Guid.Empty)
             throw new ArgumentException("ID não pode ser vazio", nameof(id));
 
         var entity = await DbSet.FindAsync(id);
@@ -180,6 +180,11 @@ public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :
         if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
         return await DbSet.AsNoTracking().AnyAsync(predicate);
+    }
+
+    public virtual IQueryable<TEntity> GetQueryable()
+    {
+        return DbSet.AsNoTracking();
     }
 
     public void Dispose()

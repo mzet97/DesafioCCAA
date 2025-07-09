@@ -1,0 +1,52 @@
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+@using SistemaLivro.Application.UseCases.Books.ViewModels
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex align-center mb-4">
+            <MudIcon Icon="Icons.Material.Filled.Warning" Color="Color.Error" Class="mr-3" Style="font-size: 2rem;" />
+            <MudText Typo="Typo.h6">Confirmar Exclusão</MudText>
+        </div>
+
+        <MudText Class="mb-3">
+            Tem certeza que deseja excluir @SelectedBooks.Count() livro(s) selecionado(s)?
+        </MudText>
+
+        <MudPaper Class="pa-4" Elevation="1" Style="max-height: 300px; overflow-y: auto;">
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Livros que serão excluídos:</MudText>
+            @foreach (var book in SelectedBooks.Take(10))
+            {
+                <MudText Typo="Typo.body2" Class="mb-1">
+                    <MudIcon Icon="Icons.Material.Filled.Book" Size="Size.Small" Class="mr-2" />
+                    @book.Title - @book.Author
+                </MudText>
+            }
+            @if (SelectedBooks.Count() > 10)
+            {
+                <MudText Typo="Typo.body2" Class="mt-2" Style="font-style: italic;">
+                    E mais @(SelectedBooks.Count() - 10) livro(s)...
+                </MudText>
+            }
+        </MudPaper>
+
+        <MudAlert Severity="Severity.Error" Class="mt-4">
+            Esta ação não pode ser desfeita!
+        </MudAlert>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Submit">
+            Excluir @SelectedBooks.Count() Livro(s)
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
+
+    [Parameter] public IEnumerable<BookViewModel> SelectedBooks { get; set; } = new List<BookViewModel>();
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+}

@@ -26,7 +26,6 @@ public class RegisterUserCommandHandler(
 
         if (resultCreateUser.Succeeded)
         {
-
             var rawToken = await applicationUserService.GenerateEmailConfirmationTokenAsync(user);
             var tokenBytes = Encoding.UTF8.GetBytes(rawToken);
             var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
@@ -34,6 +33,13 @@ public class RegisterUserCommandHandler(
             var confirmationLink = $"http://localhost:5120/Auth/confirm-email?userId={user.Id}&token={encodedToken}";
 
             await emailSender.SendConfirmationLinkAsync(user, request.Email, confirmationLink);
+
+            // For development/testing purposes, automatically confirm email
+            var confirmResult = await applicationUserService.ConfirmEmailAsync(user, rawToken);
+            if (!confirmResult.Succeeded)
+            {
+                logger.LogWarning("Failed to auto-confirm email for user {Email}", request.Email);
+            }
 
             await applicationUserService.TrySignInAsync(user);
             return await mediator.Send(new GetTokenCommand { Email = request.Email });

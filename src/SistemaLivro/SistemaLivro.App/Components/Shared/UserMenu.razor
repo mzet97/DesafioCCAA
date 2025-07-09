@@ -1,0 +1,43 @@
+﻿@implements IDisposable
+
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+    <Authorized>
+        <MudButton Href="Account/Manage" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Person" Class="m-2 p-3 mr-8" Color="Color.Warning">@context.User.Identity?.Name</MudButton>
+        <form action="Account/Logout" method="post">
+            <AntiforgeryToken />
+            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+            <button type="submit" class="mud-nav-link mud-ripple">
+                <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
+            </button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <MudButton Href="Account/Register" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Person" Class="m-2 p-3 mr-8" Color="Color.Info">Register</MudButton>
+        <MudButton Href="Account/Login" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Password" Color="Color.Warning">Login</MudButton>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+

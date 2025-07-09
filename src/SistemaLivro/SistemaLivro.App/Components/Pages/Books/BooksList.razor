@@ -1,10 +1,13 @@
 @page "/books"
+@using Gridify
 @using MediatR
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 @using SistemaLivro.Application.UseCases.Books.Queries
+@using SistemaLivro.Application.UseCases.Books.Commands
 @using SistemaLivro.Application.UseCases.Books.ViewModels
 @using SistemaLivro.Shared.ViewModels
+@using SistemaLivro.App.Components.Shared
 @inject IMediator Mediator
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -16,61 +19,14 @@
 
 <AuthorizeView> 
     <Authorized>
-        
         <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
             <MudText Typo="Typo.h4" Class="mb-4">Gerenciamento de Livros</MudText>
     
-            <MudCard>
+            <!-- Toolbar com ações -->
+            <MudCard Class="mb-4">
                 <MudCardContent>
-                    <!-- Filtros -->
-                    <MudGrid Class="mb-4">
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudTextField @bind-Value="searchQuery.Title" 
-                                          Label="Título" 
-                                          Variant="Variant.Outlined" 
-                                          Adornment="Adornment.Start" 
-                                          AdornmentIcon="Icons.Material.Filled.Search" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudTextField @bind-Value="searchQuery.Author" 
-                                          Label="Autor" 
-                                          Variant="Variant.Outlined" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudTextField @bind-Value="searchQuery.ISBN" 
-                                          Label="ISBN" 
-                                          Variant="Variant.Outlined" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudTextField @bind-Value="searchQuery.GenderName" 
-                                          Label="Gênero" 
-                                          Variant="Variant.Outlined" />
-                        </MudItem>
-                    </MudGrid>
-            
-                    <MudGrid Class="mb-4">
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudTextField @bind-Value="searchQuery.PublisherName" 
-                                          Label="Editora" 
-                                          Variant="Variant.Outlined" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudButton Variant="Variant.Filled" 
-                                       Color="Color.Primary" 
-                                       StartIcon="Icons.Material.Filled.Search"
-                                       OnClick="SearchBooks">
-                                Buscar
-                            </MudButton>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudButton Variant="Variant.Outlined" 
-                                       Color="Color.Secondary" 
-                                       StartIcon="Icons.Material.Filled.Clear"
-                                       OnClick="ClearFilters">
-                                Limpar
-                            </MudButton>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
+                    <MudGrid AlignItems="Center">
+                        <MudItem xs="12" md="6">
                             <MudButton Variant="Variant.Filled" 
                                        Color="Color.Success" 
                                        StartIcon="Icons.Material.Filled.Add"
@@ -78,36 +34,76 @@
                                 Novo Livro
                             </MudButton>
                         </MudItem>
+                        <MudItem xs="12" md="6" Class="d-flex justify-end">
+                            @if (selectedBooks.Any())
+                            {
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="Color.Error" 
+                                           StartIcon="Icons.Material.Filled.Delete"
+                                           OnClick="DeleteSelectedBooks">
+                                    Excluir Selecionados (@selectedBooks.Count)
+                                </MudButton>
+                            }
+                        </MudItem>
                     </MudGrid>
                 </MudCardContent>
             </MudCard>
     
-            <!-- Tabela de Livros -->
-            <MudCard Class="mt-4">
+            <!-- Data Grid Avançado -->
+            <MudCard>
                 <MudCardContent>
                     <MudDataGrid T="BookViewModel" 
-                                 Items="@books" 
-                                 Loading="@loading"
+                                 @ref="dataGrid"
+                                 ServerData="LoadServerData"
+                                 MultiSelection="true"
+                                 @bind-SelectedItems="selectedBooks"
+                                 Filterable="true"
+                                 FilterMode="DataGridFilterMode.ColumnFilterRow"
+                                 SortMode="SortMode.Multiple"
+                                 Virtualize="true"
+                                 Dense="true"
                                  Hover="true"
                                  Striped="true"
-                                 Dense="true">
+                                 FixedHeader="true"
+                                 Height="600px">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Livros</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="globalSearchTerm" 
+                                          Placeholder="Busca global..." 
+                                          Adornment="Adornment.Start" 
+                                          AdornmentIcon="Icons.Material.Filled.Search" 
+                                          IconSize="Size.Medium" 
+                                          Class="mt-0"
+                                          Debounce="500"
+                                          DebounceInterval="300"
+                                          OnDebounceIntervalElapsed="OnGlobalSearch" />
+                        </ToolBarContent>
                         <Columns>
-                            <PropertyColumn Property="x => x.Title" Title="Título" />
-                            <PropertyColumn Property="x => x.Author" Title="Autor" />
-                            <PropertyColumn Property="x => x.ISBN" Title="ISBN" />
-                            <PropertyColumn Property="x => x.GenderName" Title="Gênero" />
-                            <PropertyColumn Property="x => x.PublisherName" Title="Editora" />
-                            <TemplateColumn Title="Ações" Sortable="false">
-                                <CellTemplate Context="item">
+                            <SelectColumn T="BookViewModel" />
+                            <PropertyColumn Property="x => x.Title" Title="Título" Filterable="true" />
+                            <PropertyColumn Property="x => x.Author" Title="Autor" Filterable="true" />
+                            <PropertyColumn Property="x => x.ISBN" Title="ISBN" Filterable="true" />
+                            <PropertyColumn Property="x => x.GenderName" Title="Gênero" Filterable="true" />
+                            <PropertyColumn Property="x => x.PublisherName" Title="Editora" Filterable="true" />
+                            <PropertyColumn Property="x => x.CreatedAt" Title="Criado em" Filterable="true">
+                                <CellTemplate Context="cellContext">
+                                    @cellContext.Item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <TemplateColumn Title="Ações" Sortable="false" Filterable="false" Class="d-flex justify-end">
+                                <CellTemplate Context="cellContext">
                                     <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
                                         <MudIconButton Icon="Icons.Material.Filled.Edit" 
                                                        Color="Color.Primary" 
                                                        Size="Size.Small"
-                                                       OnClick="() => EditBook(item.Item.Id)" />
+                                                       Title="Editar"
+                                                       OnClick="() => EditBook(cellContext.Item.Id)" />
                                         <MudIconButton Icon="Icons.Material.Filled.Delete" 
                                                        Color="Color.Error" 
                                                        Size="Size.Small"
-                                                       OnClick="() => DeleteBook(item.Item.Id)" />
+                                                       Title="Excluir"
+                                                       OnClick="() => DeleteSingleBook(cellContext.Item)" />
                                     </MudButtonGroup>
                                 </CellTemplate>
                             </TemplateColumn>
@@ -127,37 +123,106 @@
 </AuthorizeView>
 
 @code {
-    private SearchBookQuery searchQuery = new();
-    private List<BookViewModel> books = new();
-    private bool loading = false;
+    private MudDataGrid<BookViewModel>? dataGrid;
+    private HashSet<BookViewModel> selectedBooks = new();
+    private string globalSearchTerm = string.Empty;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        await SearchBooks();
+        // Inicialização se necessária
+        return Task.CompletedTask;
     }
 
-    private async Task SearchBooks()
+    private async Task<GridData<BookViewModel>> LoadServerData(GridState<BookViewModel> state)
     {
-        loading = true;
         try
         {
-            var result = await Mediator.Send(searchQuery);
-            books = result.Data.ToList();
+            var gridifyQuery = new GridifyQuery
+            {
+                Page = state.Page + 1, // MudBlazor usa base 0, Gridify usa base 1
+                PageSize = state.PageSize,
+                Filter = BuildFilter(state),
+                OrderBy = BuildOrderBy(state)
+            };
+
+            var query = new GetBooksGridQuery(gridifyQuery);
+            var result = await Mediator.Send(query);
+
+            return new GridData<BookViewModel>
+            {
+                Items = result.Data,
+                TotalItems = result.PagedResult.RowCount
+            };
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Erro ao carregar livros: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            loading = false;
+            return new GridData<BookViewModel> { Items = new List<BookViewModel>(), TotalItems = 0 };
         }
     }
 
-    private void ClearFilters()
+    private string BuildFilter(GridState<BookViewModel> state)
     {
-        searchQuery = new SearchBookQuery();
-        StateHasChanged();
+        var filters = new List<string>();
+
+        // Filtro global
+        if (!string.IsNullOrWhiteSpace(globalSearchTerm))
+        {
+            filters.Add($"title~{globalSearchTerm} OR author~{globalSearchTerm} OR isbn~{globalSearchTerm} OR genderName~{globalSearchTerm} OR publisherName~{globalSearchTerm}");
+        }
+
+        // Filtros por coluna
+        foreach (var filterDefinition in state.FilterDefinitions)
+        {
+            if (filterDefinition.Value != null && !string.IsNullOrWhiteSpace(filterDefinition.Value.ToString()))
+            {
+                var columnName = GetGridifyColumnName(filterDefinition.Column?.PropertyName ?? "");
+                if (!string.IsNullOrEmpty(columnName))
+                {
+                    filters.Add($"{columnName}~{filterDefinition.Value}");
+                }
+            }
+        }
+
+        return string.Join(" AND ", filters);
+    }
+
+    private string BuildOrderBy(GridState<BookViewModel> state)
+    {
+        if (state.SortDefinitions?.Any() == true)
+        {
+            var sortExpressions = state.SortDefinitions.Select(sortDef =>
+            {
+                var columnName = GetGridifyColumnName(sortDef.SortBy ?? "");
+                var direction = sortDef.Descending ? " desc" : "";
+                return $"{columnName}{direction}";
+            });
+            return string.Join(", ", sortExpressions);
+        }
+        return "createdAt desc"; // Ordenação padrão
+    }
+
+    private string GetGridifyColumnName(string propertyName)
+    {
+        return propertyName.ToLower() switch
+        {
+            "title" => "title",
+            "author" => "author",
+            "isbn" => "isbn",
+            "gendername" => "genderName",
+            "publishername" => "publisherName",
+            "createdat" => "createdAt",
+            "updatedat" => "updatedAt",
+            _ => ""
+        };
+    }
+
+    private async Task OnGlobalSearch()
+    {
+        if (dataGrid != null)
+        {
+            await dataGrid.ReloadServerData();
+        }
     }
 
     private void CreateBook()
@@ -170,11 +235,11 @@
         Navigation.NavigateTo($"/books/edit/{id}");
     }
 
-    private async Task DeleteBook(Guid id)
+    private async Task DeleteSingleBook(BookViewModel book)
     {
         var parameters = new DialogParameters
         {
-            ["ContentText"] = "Tem certeza que deseja excluir este livro? Esta ação não pode ser desfeita.",
+            ["ContentText"] = $"Tem certeza que deseja excluir o livro '{book.Title}'? Esta ação não pode ser desfeita.",
             ["ButtonText"] = "Excluir",
             ["Color"] = Color.Error
         };
@@ -182,18 +247,60 @@
         var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirmar Exclusão", parameters);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             try
             {
-                // TODO: Implementar comando de exclusão
-                // await Mediator.Send(new DeleteBookCommand(id));
+                var command = new DeletesBookCommand(new[] { book.Id }, Guid.Empty); // TODO: Implementar UserID
+                await Mediator.Send(command);
                 Snackbar.Add("Livro excluído com sucesso!", Severity.Success);
-                await SearchBooks();
+                if (dataGrid != null)
+                {
+                    await dataGrid.ReloadServerData();
+                }
             }
             catch (Exception ex)
             {
-            Snackbar.Add($"Erro ao excluir livro: {ex.Message}", Severity.Error);
+                Snackbar.Add($"Erro ao excluir livro: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteSelectedBooks()
+    {
+        if (!selectedBooks.Any())
+        {
+            Snackbar.Add("Nenhum livro selecionado", Severity.Warning);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            ["SelectedBooks"] = selectedBooks
+        };
+
+        var dialog = await DialogService.ShowAsync<DeleteMultipleBooksDialog>("Confirmar Exclusão Múltipla", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                var bookIds = selectedBooks.Select(b => b.Id).ToList();
+                var command = new DeletesBookCommand(bookIds, Guid.Empty); // TODO: Implementar UserID
+                await Mediator.Send(command);
+                
+                Snackbar.Add($"{selectedBooks.Count} livro(s) excluído(s) com sucesso!", Severity.Success);
+                selectedBooks.Clear();
+                
+                if (dataGrid != null)
+                {
+                    await dataGrid.ReloadServerData();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao excluir livros: {ex.Message}", Severity.Error);
             }
         }
     }
